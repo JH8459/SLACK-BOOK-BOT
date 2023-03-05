@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    // nestJS default
     "module": "commonjs",
     "declaration": true,
     "removeComments": true,
@@ -16,6 +17,10 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false
-  }
+    "noFallthroughCasesInSwitch": false,
+    // extension
+    "resolveJsonModule": true, // json 파일을 import로 받아오는걸 허용
+    "esModuleInterop": true  // commonJS 형태의 모듈도 import로 받아오는걸 허용
+  },
+  "include": ["src/*"]
 }
