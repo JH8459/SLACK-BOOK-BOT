@@ -10,6 +10,10 @@ export class SlackService {
     const slackSigningSecret = this.configService.get('SLACK_KEY');
     const slackEvents = createEventAdapter(slackSigningSecret);
 
+    slackEvents.on('message', async (event) => {
+      console.log(event);
+    });
+
     return slackEvents;
   }
 }
