@@ -1,10 +1,14 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { ConfigModule } from '@nestjs/config';
+import { NotionModule } from 'nestjs-notion';
+import { NOTION_CONFIG } from './config/notion.config';
+import { LunchModule } from './module/lunch/lunch.module';
 
 @Module({
-  imports: [],
-  controllers: [AppController],
-  providers: [AppService],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    NotionModule.forRootAsync(NOTION_CONFIG),
+    LunchModule,
+  ],
 })
 export class AppModule {}
