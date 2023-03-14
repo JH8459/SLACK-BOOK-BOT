@@ -5,12 +5,13 @@ import {
   SlackEventHandlerConfig,
   SlackInteractivityHandlerConfig,
 } from 'nestjs-slack-listener';
+import { SlackService } from 'nestjs-slack';
 
 @Injectable()
 export class SlackEventService {
   private readonly slackEventHandler: SlackEventHandlerConfig[];
   private readonly slackInteractivityHandler: SlackInteractivityHandlerConfig[];
-  constructor() {
+  constructor(private readonly slackService: SlackService) {
     this.slackEventHandler = [];
     this.slackInteractivityHandler = [];
   }
@@ -73,6 +74,7 @@ export class SlackEventService {
   }
 
   async getSlackEventHandler(event: IncomingSlackEvent): Promise<any> {
+    console.log('✅', event);
     return Promise.all(
       this.slackEventHandler.map(
         async (handlerConfig) =>
