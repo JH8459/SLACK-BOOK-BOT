@@ -16,11 +16,11 @@ export class LunchService {
 
     const lunchList = notionLunchList.results.map((result) => {
       return {
-        name: result.properties['식당명']['title'][0]['plain_text'],
-        genre: result.properties['장르']['select'].name,
-        link: result.properties['링크']['url'],
-        createBy: result.properties['생성자']['created_by'].name,
-        createdAt: result.properties['생성 일시']['created_time'],
+        식당명: result.properties['식당명']['title'][0]['plain_text'],
+        장르: result.properties['장르']['select'].name,
+        바로가기: result.properties['링크']['url'],
+        만든이: result.properties['생성자']['created_by'].name,
+        생성일: result.properties['생성 일시']['created_time'],
       };
     });
 
