@@ -12,27 +12,11 @@ export class SlackService {
     console.log('✅', event);
     const lunchList = await this.lunchService.getLunchList();
 
+    console.log('✅', lunchList);
+
     await this.slackClient.chat.postMessage({
       channel: event.channel,
       text: '🙏 개발중입니다!',
-      blocks: [
-        {
-          type: 'header',
-          text: {
-            type: 'plain_text',
-            text: 'Hi there! 👋🏻',
-          },
-        },
-        {
-          type: 'section',
-          text: {
-            type: 'mrkdwn',
-            text: `Hello! Nice to meet you, ${event.user}! I'm *hanch*, a slack bot that helps you with onboarding process.`,
-          },
-        },
-      ],
     });
-
-    console.log('✅', lunchList);
   }
 }
