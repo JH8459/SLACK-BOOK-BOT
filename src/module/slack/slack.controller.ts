@@ -13,11 +13,12 @@ import { SlackService } from './slack.service';
 export class SlackController {
   constructor(private readonly slackService: SlackService) {}
 
+  /** '!맛집' 메시지 */
   @SlackEventHandler({
     eventType: 'message',
-    filter: ({ event }) => event.text.includes('TEST'),
+    filter: ({ event }) => event.text.includes('!맛집'),
   })
-  async slack({ event }: IncomingSlackEvent<MessageEvent>) {
-    this.slackService.takeMemo(event);
+  async getLunchList({ event }: IncomingSlackEvent<MessageEvent>) {
+    this.slackService.getLunchList(event);
   }
 }
