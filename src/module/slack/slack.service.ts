@@ -9,14 +9,16 @@ export class SlackService {
     @InjectSlackClient() private readonly slackClient: SlackClient,
   ) {}
   async getLunchList(event: any) {
-    console.log('✅', event);
+    console.log('✅', event.channel);
     const lunchList = await this.lunchService.getLunchList();
 
     console.log('✅', lunchList);
 
-    await this.slackClient.chat.postMessage({
+    const response = await this.slackClient.chat.postMessage({
       channel: event.channel,
       text: '🙏 개발중입니다!',
     });
+
+    console.log('✅', response);
   }
 }
