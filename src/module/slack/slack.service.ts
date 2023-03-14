@@ -1,19 +1,94 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { createEventAdapter } from '@slack/events-api';
+import {
+  IncomingSlackEvent,
+  IncomingSlackInteractivity,
+  SlackEventHandlerConfig,
+  SlackInteractivityHandlerConfig,
+} from 'nestjs-slack-listener';
 
 @Injectable()
-export class SlackService {
-  constructor(private readonly configService: ConfigService) {}
+export class SlackEventService {
+  private readonly slackEventHandler: SlackEventHandlerConfig[];
+  private readonly slackInteractivityHandler: SlackInteractivityHandlerConfig[];
+  constructor() {
+    this.slackEventHandler = [];
+    this.slackInteractivityHandler = [];
+  }
 
-  async getSlackMessageEvent(): Promise<any> {
-    const slackSigningSecret = this.configService.get('SLACK_KEY');
-    const slackEvents = createEventAdapter(slackSigningSecret);
+  addEventHandler(handler: SlackEventHandlerConfig) {
+    this.slackEventHandler.push(handler);
+  }
 
-    slackEvents.on('message', async (event) => {
-      console.log(event);
-    });
+  addInteractivityHandler(handler: SlackInteractivityHandlerConfig) {
+    this.slackInteractivityHandler.push(handler);
+  }
 
-    return slackEvents;
+  async handleSingleEvent(
+    event: IncomingSlackEvent,
+    handlerConfig: SlackEventHandlerConfig,
+  ) {
+    const { eventType, filter, handler } = handlerConfig;
+
+    if (eventType) {
+      if (event.event.type != eventType) {
+        return;
+      }
+    }
+
+    if (filter) {
+      try {
+        if (!filter(event)) {
+          return;
+        }
+      } catch (e) {
+        return;
+      }
+    }
+
+    return handler(event);
+  }
+
+  async handleSingleInteractivity(
+    payload: IncomingSlackInteractivity,
+    handlerConfig: SlackInteractivityHandlerConfig,
+  ) {
+    const { actionId, filter, handler } = handlerConfig;
+
+    if (actionId) {
+      if (
+        payload.actions.filter((action) => action.action_id == actionId)
+          .length == 0
+      ) {
+        return;
+      }
+    }
+
+    if (filter) {
+      if (!filter(payload)) {
+        return;
+      }
+    }
+
+    return handler(payload);
+  }
+
+  async getSlackEventHandler(event: IncomingSlackEvent): Promise<any> {
+    return Promise.all(
+      this.slackEventHandler.map(
+        async (handlerConfig) =>
+          await this.handleSingleEvent(event, handlerConfig),
+      ),
+    );
+  }
+
+  async getSlackInteractivity(
+    payload: IncomingSlackInteractivity,
+  ): Promise<any> {
+    return Promise.all(
+      this.slackInteractivityHandler.map(
+        async (handlerConfig) =>
+          await this.handleSingleInteractivity(payload, handlerConfig),
+      ),
+    );
   }
 }
