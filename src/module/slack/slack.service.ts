@@ -15,14 +15,35 @@ export class SlackService {
       .map((book) => {
         return [
           {
-            type: 'divider',
-          },
-          {
             type: 'section',
             text: {
               type: 'mrkdwn',
-              text: `*<${book['바로가기']}|${book['식당명']}>*\n★★★★★ 별점 시스템 개발중 🙏\n장르: ${book['장르']}`,
+              text: `*<${book.link}|${book.title}>*\n저자: ${book.author}\n분야: ${book.genre}\nE-BOOK: ${book.file}`,
             },
+            accessory: {
+              type: 'image',
+              image_url: book['이미지'],
+              alt_text: 'ACG Book Thumbnail',
+            },
+          },
+          {
+            type: 'context',
+            elements: [
+              {
+                type: 'image',
+                image_url:
+                  'https://user-images.githubusercontent.com/83164003/225341790-052a6a7d-fa92-437b-8afe-7c40bf851e5d.png',
+                alt_text: '요청자',
+              },
+              {
+                type: 'plain_text',
+                emoji: true,
+                text: `${book.requester} || ${book.date}`,
+              },
+            ],
+          },
+          {
+            type: 'divider',
           },
         ];
       })
@@ -35,7 +56,7 @@ export class SlackService {
           type: 'section',
           text: {
             type: 'mrkdwn',
-            text: `📓 ACG 사내 도서 목록입니다. \n신규 도서를 추가하려면 우측 버튼을 눌러 저장소로 이동해 추가해주세요! 👉`,
+            text: `📓 ACG 사내 도서 목록입니다. \n도서를 추가하려면 우측 버튼을 눌러 저장소로 이동해 추가해주세요! 👉`,
           },
           accessory: {
             type: 'button',
@@ -49,7 +70,9 @@ export class SlackService {
             action_id: 'button-action',
           },
         },
-
+        {
+          type: 'divider',
+        },
         ...bookListBox,
       ],
     });
