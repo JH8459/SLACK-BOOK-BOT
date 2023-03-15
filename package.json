@@ -1,8 +1,8 @@
 {
-  "name": "slack-lunch-bot",
+  "name": "slack-book-bot",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "📓 ACG 사내 도서 리스트 슬랙 챗봇",
+  "author": "JH8459",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
