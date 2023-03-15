@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { link } from 'fs';
 import { NotionService } from 'nestjs-notion';
 
 @Injectable()
@@ -25,7 +24,9 @@ export class BookService {
       const file =
         result.properties['첨부파일']['files']['file']?.url ?? '없음';
       const requester = result.properties['요청자']['people']?.name ?? '';
-      const date = result.properties['구매일자']['date']?.start ?? '';
+      const date = result.properties['구매일자']
+        ? result.properties['구매일자']['date']['start']
+        : '';
 
       return {
         genre,

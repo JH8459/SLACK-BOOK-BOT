@@ -33,7 +33,7 @@ export class SlackService {
                 type: 'image',
                 image_url:
                   'https://user-images.githubusercontent.com/83164003/225341790-052a6a7d-fa92-437b-8afe-7c40bf851e5d.png',
-                alt_text: '요청자',
+                alt_text: 'Requester Thumbnail',
               },
               {
                 type: 'plain_text',
