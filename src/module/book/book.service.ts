@@ -15,15 +15,28 @@ export class BookService {
     });
 
     const bookList = notionBookList.results.map((result) => {
-      // 변수 예외처리 (?? '')
-      const genre = result.properties['장르']['select']?.name ?? '';
-      const title = result.properties['도서명']['title']?.plain_text ?? '';
-      const author = result.properties['저자']['rich_text']?.plain_text ?? '';
-      const link = result.properties['링크']['url'] ?? '';
-      const image = result.properties['이미지']['files']?.name ?? '';
-      const file =
-        result.properties['첨부파일']['files']['file']?.url ?? '없음';
-      const requester = result.properties['요청자']['people']?.name ?? '';
+      // 변수 예외처리
+      const genre = result.properties['장르']
+        ? result.properties['장르']['select']['name']
+        : '';
+      const title = result.properties['도서명']
+        ? result.properties['도서명']['title']['plain_text']
+        : '';
+      const author = result.properties['저자']
+        ? result.properties['저자']['rich_text']['plain_text']
+        : '';
+      const link = result.properties['링크']
+        ? result.properties['링크']['url']
+        : '';
+      const image = result.properties['이미지']
+        ? result.properties['이미지']['files']['name']
+        : '';
+      const file = result.properties['첨부파일']['files']
+        ? result.properties['첨부파일']['files']['file']['url']
+        : '없음';
+      const requester = result.properties['요청자']
+        ? result.properties['요청자']['people']['name']
+        : '';
       const date = result.properties['구매일자']
         ? result.properties['구매일자']['date']['start']
         : '';
