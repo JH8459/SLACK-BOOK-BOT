@@ -31,7 +31,7 @@ export class BookService {
       const image = result.properties['이미지']
         ? result.properties['이미지']['files']['name']
         : '';
-      const file = result.properties['첨부파일']['files']
+      const file = result.properties['첨부파일']['files']['file']
         ? result.properties['첨부파일']['files']['file']['url']
         : '없음';
       const requester = result.properties['요청자']
