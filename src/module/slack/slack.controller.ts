@@ -16,9 +16,9 @@ export class SlackController {
   /** '!맛집' 메시지 */
   @SlackEventHandler({
     eventType: 'message',
-    filter: ({ event }) => event.text.includes('!맛집'),
+    filter: ({ event }) => event.text.includes('!책'),
   })
-  async getLunchList({ event }: IncomingSlackEvent<MessageEvent>) {
-    this.slackService.getLunchList(event);
+  async getBookList({ event }: IncomingSlackEvent<MessageEvent>) {
+    this.slackService.getBookList(event);
   }
 }

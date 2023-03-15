@@ -3,18 +3,18 @@ import { ConfigService } from '@nestjs/config';
 import { NotionService } from 'nestjs-notion';
 
 @Injectable()
-export class LunchService {
+export class BookService {
   constructor(
     private readonly configService: ConfigService,
     private readonly notionService: NotionService,
   ) {}
 
-  async getLunchList(): Promise<any> {
-    const notionLunchList = await this.notionService.databases.query({
-      database_id: this.configService.get('NOTION_LUNCH_LIST'),
+  async getBookList(): Promise<any> {
+    const notionBookList = await this.notionService.databases.query({
+      database_id: this.configService.get('NOTION_BOOK_LIST'),
     });
 
-    const lunchList = notionLunchList.results.map((result) => {
+    const bookList = notionBookList.results.map((result) => {
       return {
         식당명: result.properties['식당명']['title'][0]['plain_text'],
         장르: result.properties['장르']['select'].name,
@@ -24,6 +24,6 @@ export class LunchService {
       };
     });
 
-    return lunchList;
+    return bookList;
   }
 }

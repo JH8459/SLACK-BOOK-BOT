@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { LunchModule } from '../lunch/lunch.module';
+import { BookModule } from '../book/book.module';
 import { SlackController } from './slack.controller';
 import { SlackService } from './slack.service';
 
 @Module({
-  imports: [LunchModule],
+  imports: [BookModule],
   controllers: [SlackController],
   providers: [SlackService],
 })

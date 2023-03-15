@@ -1,3 +1,3 @@
-# SLACK-LUNCH-BOT
+# SLACK-BOOK-BOT
 
-슬랙 런치 봇
+### 📓 ACG 사내 도서 리스트 슬랙 챗봇

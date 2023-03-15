@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 import { NotionModule } from 'nestjs-notion';
 import { NOTION_CONFIG } from '../../config/notion.config';
-import { LunchService } from './lunch.service';
+import { BookService } from './book.service';
 
 @Module({
   imports: [NotionModule.forRootAsync(NOTION_CONFIG)],
-  providers: [LunchService],
-  exports: [LunchService],
+  providers: [BookService],
+  exports: [BookService],
 })
-export class LunchModule {}
+export class BookModule {}
