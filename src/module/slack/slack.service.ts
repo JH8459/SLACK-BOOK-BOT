@@ -22,7 +22,7 @@ export class SlackService {
             },
             accessory: {
               type: 'image',
-              image_url: book['이미지'],
+              image_url: book.image,
               alt_text: 'ACG Book Thumbnail',
             },
           },
