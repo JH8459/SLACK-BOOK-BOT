@@ -32,6 +32,7 @@ export class SlackController {
     channel,
     actions: [{ value }],
   }: IncomingSlackInteractivity) {
+    console.log('✅ 들어옴!');
     this.slackService.getBookMoreList(channel, value);
   }
 }

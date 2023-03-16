@@ -27,7 +27,7 @@ export const VerificationNotionBookList = (notionBookList) => {
       : '';
     const requester = result.properties['대여자']['people'].length
       ? result.properties['대여자']['people'][0]['name']
-      : '알수없음';
+      : null;
     const date = result.properties['반납일자']
       ? result.properties['반납일자']['date']['start']
       : '불확실';
