@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 import { BookModule } from '../book/book.module';
 import { SlackController } from './slack.controller';
-import { SlackService } from './slack.service';
+import { SlackEventService } from './slackEvent.service';
 
 @Module({
   imports: [BookModule],
   controllers: [SlackController],
-  providers: [SlackService],
+  providers: [SlackEventService],
 })
-export class SlackModule {}
+export class SlackModule { }
