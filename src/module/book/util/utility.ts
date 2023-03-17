@@ -1,3 +1,4 @@
+/** 노션에서 불러온 데이터 전처리 함수 */
 export const VerificationNotionBookList = (notionBookList) => {
   const result = notionBookList.results.map((result) => {
     // 변수 예외처리
@@ -21,9 +22,9 @@ export const VerificationNotionBookList = (notionBookList) => {
       : null;
     const status = result.properties['상태']
       ? {
-          name: result.properties['상태']['select']['name'],
-          color: result.properties['상태']['select']['color'],
-        }
+        name: result.properties['상태']['select']['name'],
+        color: result.properties['상태']['select']['color'],
+      }
       : '';
     const requester = result.properties['대여자']['people'].length
       ? result.properties['대여자']['people'][0]['name']
