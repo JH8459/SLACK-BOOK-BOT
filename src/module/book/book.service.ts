@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NotionService } from 'nestjs-notion';
+import { YN_ENUM } from '../../common/constant/enum';
 import { Sort } from './interface/notion.interface';
 import { VerificationNotionBookList } from './util/utility';
 
@@ -49,52 +50,57 @@ export class BookService {
   async rentBook(value, userName: string): Promise<any> {
     // 노션 API를 호출 하기 위한 정보
     const rentListDatabaseId: string = this.configService.get('NOTION_RENTAL_LIST');
-
-    const info = await this.notionService.pages.retrieve({ page_id: value })
-
-    // 반납일자는 1주일 뒤 (YYYY-MM-DD)
-    const today = new Date();
-    today.setDate(today.getDate() + 7);
-    const returnDay = today.toISOString().substring(0, 10);
-    // 도서리스트 업데이트 (상태 & 대여자 & 반납예정일자)
-    await this.notionService.pages.update({
-      page_id: value, properties: {
-        '상태': {
-          type: 'select',
-          select: { id: 'lRoP', name: '대여중', color: 'yellow' }
-        },
-        '대여자': {
-          type: 'rich_text',
-          rich_text: [{
-            type: 'text', text: {
-              content: userName
-            }
-          }]
-        },
-        '반납예정일자': {
-          type: 'date',
-          date: { start: returnDay }
+    // 대여할 도서의 DB 정보를 가져오는 요청
+    const bookInfo = await this.notionService.pages.retrieve({ page_id: value })
+    // 대여 성공 여부를 판별하는 변수 rentYN 선언 (초기값 = 'N')
+    let rentSuccessYN = YN_ENUM.NO;
+    // 대여할 도서의 상태가 '대여가능' 상태인 경우에만 도서 대여 로직을 수행한다
+    if (bookInfo.properties['상태']['select'].name === '대여가능') {
+      // 반납일자를 담는 변수 "returnDay" 선언 (대여 신청 후 1주일 뒤로 Setting, Format: "YYYY-MM-DD")
+      const today = new Date();
+      today.setDate(today.getDate() + 7);
+      const returnDay = today.toISOString().substring(0, 10);
+      // 도서리스트 DB 업데이트 ("상태" & "대여자" & "반납예정일자" 속성 업데이트)
+      await this.notionService.pages.update({
+        page_id: value, properties: {
+          '상태': {
+            type: 'select',
+            select: { id: 'lRoP', name: '대여중', color: 'yellow' }
+          },
+          '대여자': {
+            type: 'rich_text',
+            rich_text: [{
+              type: 'text', text: {
+                content: userName
+              }
+            }]
+          },
+          '반납예정일자': {
+            type: 'date',
+            date: { start: returnDay }
+          }
         }
-      }
-    })
-    // 도서 대출 관리대장 작성
-    const rent = await this.notionService.pages.create({
-      parent: { database_id: rentListDatabaseId }, properties: {
-        '대여자': {
-          type: 'title',
-          title: [{
-            type: 'text', text: {
-              content: userName
-            }
-          }]
-        },
-        '반납예정일자': {
-          type: 'date',
-          date: { start: returnDay }
+      })
+      // 도서 대출 관리대장 DB 생성 (관계 설정 필요.. [개발중])
+      await this.notionService.pages.create({
+        parent: { database_id: rentListDatabaseId }, properties: {
+          '대여자': {
+            type: 'title',
+            title: [{
+              type: 'text', text: {
+                content: userName
+              }
+            }]
+          },
+          '반납예정일자': {
+            type: 'date',
+            date: { start: returnDay }
+          }
         }
-      }
-    })
-
-    return rent;
+      });
+      rentSuccessYN = YN_ENUM.YES
+    }
+    // 대상 도서 정보(bookInfo)와 대여 성공 유무(rentSuccessYN) 리턴
+    return { bookInfo, rentSuccessYN };
   }
 }

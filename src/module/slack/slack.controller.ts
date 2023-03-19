@@ -31,10 +31,11 @@ export class SlackController {
   /** RENT action 핸들러 */
   @SlackInteractivityHandler(ACTION_ID_ENUM.RENT)
   async rentBook({
+    channel: { id },
     user: { name },
     actions: [{ value }],
   }: IncomingSlackInteractivity) {
-    const result = await this.slackActionService.rentBook(value, name)
+    const result = await this.slackActionService.rentBook(id, value, name)
 
     return result
   }
