@@ -17,7 +17,10 @@ import { SlackEventService } from './slackEvent.service';
 @SlackEventListener()
 @SlackInteractivityListener()
 export class SlackController {
-  constructor(private readonly slackEventService: SlackEventService, private readonly slackActionService: SlackActionService) { }
+  constructor(
+    private readonly slackEventService: SlackEventService,
+    private readonly slackActionService: SlackActionService,
+  ) {}
 
   /** '!맛집' message 이벤트 핸들러 */
   @SlackEventHandler({
@@ -35,8 +38,8 @@ export class SlackController {
     user: { name },
     actions: [{ value }],
   }: IncomingSlackInteractivity) {
-    const result = await this.slackActionService.rentBook(id, value, name)
+    const result = await this.slackActionService.rentBook(id, value, name);
 
-    return result
+    return result;
   }
 }

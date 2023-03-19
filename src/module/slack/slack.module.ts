@@ -9,4 +9,4 @@ import { SlackEventService } from './slackEvent.service';
   controllers: [SlackController],
   providers: [SlackActionService, SlackEventService],
 })
-export class SlackModule { }
+export class SlackModule {}
