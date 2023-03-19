@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NotionService } from 'nestjs-notion';
+import { Sort } from './interface/notion.interface';
 import { VerificationNotionBookList } from './util/utility';
 
 @Injectable()
@@ -8,60 +9,92 @@ export class BookService {
   constructor(
     private readonly configService: ConfigService,
     private readonly notionService: NotionService,
-  ) {}
+  ) { }
 
   async getBookList(): Promise<any> {
-    const notionBookList = await this.notionService.databases.query({
-      database_id: this.configService.get('NOTION_BOOK_LIST'), // 노션DB 저장소 ID
-      page_size: 5, // 페이지네이션
-      sorts: [
-        // 정렬
-        {
-          property: '장르',
-          direction: 'ascending',
-        },
-        {
-          property: '도서명',
-          direction: 'ascending',
-        },
-      ],
+    // 노션 API를 호출 하기 위한 정보
+    const bookListDatabaseId: string = this.configService.get('NOTION_BOOK_LIST');
+    const orderBy: Sort[] = [
+      {
+        property: '장르',
+        direction: "ascending",
+      },
+      {
+        property: '도서명',
+        direction: "ascending",
+      },
+    ]
+    // 도서 리스트를 담을 변수
+    let results = [];
+    // 노션에서 도서 리스트를 가져온다.
+    let bookList = await this.notionService.databases.query({
+      database_id: bookListDatabaseId, // 도서 리스트 노션DB 저장소 ID
+      sorts: orderBy, // 정렬
     });
-    // notionBookList 데이터 전처리
-    const bookList = VerificationNotionBookList(notionBookList);
-    // 페이지네이션 정보 & 도서 리스트 정보
-    const result = {
-      hasMore: notionBookList.has_more,
-      nextCursor: notionBookList.next_cursor,
-      bookList,
-    };
-    return result;
+    // 도서 리스트
+    results = [...bookList.results]
+    // 100개 이상인 경우 리스트 연장
+    while (bookList.has_more) {
+      const nextBookList = await this.notionService.databases.query({
+        database_id: bookListDatabaseId, // 도서 리스트 노션DB 저장소 ID
+        sorts: orderBy, // 정렬
+        start_cursor: bookList.next_cursor,
+      });
+      results = [...results, ...nextBookList.results]
+    }
+    // results 데이터 전처리 후 리턴
+    return VerificationNotionBookList(results);
   }
 
-  async getBookNextList(nextCursor: string): Promise<any> {
-    const notionBookList = await this.notionService.databases.query({
-      database_id: this.configService.get('NOTION_BOOK_LIST'), // 노션DB 저장소 ID
-      start_cursor: nextCursor,
-      page_size: 5, // 페이지네이션
-      sorts: [
-        // 정렬
-        {
-          property: '장르',
-          direction: 'ascending',
+  async rentBook(value, userName: string): Promise<any> {
+    // 노션 API를 호출 하기 위한 정보
+    const rentListDatabaseId: string = this.configService.get('NOTION_RENTAL_LIST');
+
+    const info = await this.notionService.pages.retrieve({ page_id: value })
+
+    // 반납일자는 1주일 뒤 (YYYY-MM-DD)
+    const today = new Date();
+    today.setDate(today.getDate() + 7);
+    const returnDay = today.toISOString().substring(0, 10);
+    // 도서리스트 업데이트 (상태 & 대여자 & 반납예정일자)
+    await this.notionService.pages.update({
+      page_id: value, properties: {
+        '상태': {
+          type: 'select',
+          select: { id: 'lRoP', name: '대여중', color: 'yellow' }
         },
-        {
-          property: '도서명',
-          direction: 'ascending',
+        '대여자': {
+          type: 'rich_text',
+          rich_text: [{
+            type: 'text', text: {
+              content: userName
+            }
+          }]
         },
-      ],
-    });
-    // notionBookList 데이터 전처리
-    const bookList = VerificationNotionBookList(notionBookList);
-    // 페이지네이션 정보 & 도서 리스트 정보
-    const result = {
-      hasMore: notionBookList.has_more,
-      nextCursor: notionBookList.next_cursor,
-      bookList,
-    };
-    return result;
+        '반납예정일자': {
+          type: 'date',
+          date: { start: returnDay }
+        }
+      }
+    })
+    // 도서 대출 관리대장 작성
+    const rent = await this.notionService.pages.create({
+      parent: { database_id: rentListDatabaseId }, properties: {
+        '대여자': {
+          type: 'title',
+          title: [{
+            type: 'text', text: {
+              content: userName
+            }
+          }]
+        },
+        '반납예정일자': {
+          type: 'date',
+          date: { start: returnDay }
+        }
+      }
+    })
+
+    return rent;
   }
 }

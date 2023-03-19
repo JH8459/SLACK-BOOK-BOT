@@ -1,6 +1,6 @@
 /** 노션에서 불러온 데이터 전처리 함수 */
-export const VerificationNotionBookList = (notionBookList) => {
-  const result = notionBookList.results.map((result) => {
+export const VerificationNotionBookList = (results) => {
+  const result = results.map((result) => {
     // 변수 예외처리
     const genre = result.properties['장르']
       ? result.properties['장르']['select']['name']
@@ -8,7 +8,7 @@ export const VerificationNotionBookList = (notionBookList) => {
     const title = result.properties['도서명']
       ? result.properties['도서명']['title'][0]['plain_text']
       : '';
-    const author = result.properties['저자']
+    const author = result.properties['저자']['rich_text'].length
       ? result.properties['저자']['rich_text'][0]['plain_text']
       : '';
     const link = result.properties['링크']
@@ -26,12 +26,13 @@ export const VerificationNotionBookList = (notionBookList) => {
         color: result.properties['상태']['select']['color'],
       }
       : '';
-    const requester = result.properties['대여자']['people'].length
-      ? result.properties['대여자']['people'][0]['name']
+    const requester = result.properties['대여자']['rich_text'].length
+      ? result.properties['대여자']['rich_text'][0]['plain_text']
       : null;
-    const date = result.properties['반납일자']
-      ? result.properties['반납일자']['date']['start']
+    const date = result.properties['반납예정일자']
+      ? result.properties['반납예정일자']['date']['start']
       : '불확실';
+    const id = result.id;
 
     return {
       genre,
@@ -43,6 +44,7 @@ export const VerificationNotionBookList = (notionBookList) => {
       status,
       requester,
       date,
+      id,
     };
   });
 

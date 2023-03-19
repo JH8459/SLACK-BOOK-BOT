@@ -9,6 +9,7 @@ import {
   SlackInteractivityListener,
 } from 'nestjs-slack-listener';
 import { ACTION_ID_ENUM } from '../../common/constant/enum';
+import { SlackActionService } from './slackAction.service';
 import { SlackEventService } from './slackEvent.service';
 
 @ApiTags('슬랙 이벤트 API')
@@ -16,7 +17,7 @@ import { SlackEventService } from './slackEvent.service';
 @SlackEventListener()
 @SlackInteractivityListener()
 export class SlackController {
-  constructor(private readonly slackEventService: SlackEventService) { }
+  constructor(private readonly slackEventService: SlackEventService, private readonly slackActionService: SlackActionService) { }
 
   /** '!맛집' message 이벤트 핸들러 */
   @SlackEventHandler({
@@ -27,14 +28,14 @@ export class SlackController {
     this.slackEventService.getBookList(event);
   }
 
-  /** action 핸들러 */
-  @SlackInteractivityHandler(ACTION_ID_ENUM.BOOK_MORE)
-  async getBookMoreList({
-    channel: { id },
-    actions: [{ action_id, value }],
+  /** RENT action 핸들러 */
+  @SlackInteractivityHandler(ACTION_ID_ENUM.RENT)
+  async rentBook({
+    user: { name },
+    actions: [{ value }],
   }: IncomingSlackInteractivity) {
-    console.log('✅', id)
-    console.log('✅', action_id)
-    console.log('✅', value)
+    const result = await this.slackActionService.rentBook(value, name)
+
+    return result
   }
 }

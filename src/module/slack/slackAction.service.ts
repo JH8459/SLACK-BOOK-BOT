@@ -10,4 +10,8 @@ export class SlackActionService {
     private readonly bookService: BookService,
     @InjectSlackClient() private readonly slackClient: SlackClient,
   ) { }
+
+  async rentBook(value, userName): Promise<any> {
+    await this.bookService.rentBook(value, userName)
+  }
 }

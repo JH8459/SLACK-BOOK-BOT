@@ -1,4 +1,4 @@
-import { ACTION_ID_ENUM } from '../../../common/constant/enum';
+import { ACTION_ID_ENUM } from "../../../common/constant/enum";
 
 /** 노션에서 불러온 도서 데이터 블럭 변경 함수 */
 export const CreateBookListBox = (book) => {
@@ -23,9 +23,9 @@ export const CreateBookListBox = (book) => {
         type: 'mrkdwn',
         text: `상태: ${book.status.name}`,
       },
-    },
+    }
   ];
-
+  // 대여자 존재시 추가 박스
   if (book.requester) {
     box.push({
       type: 'context',
@@ -39,12 +39,29 @@ export const CreateBookListBox = (book) => {
         {
           type: 'plain_text',
           emoji: true,
-          text: `대여자: ${book.requester}     일자: ${book.date}`,
+          text: `대여자: ${book.requester}     반납예정일자: ${book.date}`,
         },
       ],
     });
+  } else {
+    // 대여자 없는 경우에는 반납 버튼 추가
+    box.push({
+      "type": "actions",
+      "elements": [
+        {
+          "type": "button",
+          "text": {
+            "type": "plain_text",
+            "text": "대여하기",
+            "emoji": true
+          },
+          "value": book.id,
+          "action_id": ACTION_ID_ENUM.RENT
+        }
+      ],
+    })
   }
-
+  // 구분선 추가
   box.push({
     type: 'divider',
   });
@@ -53,7 +70,7 @@ export const CreateBookListBox = (book) => {
 }
 
 /** 헤더 + 하단 부분 블럭 추가 함수 */
-export const CreateCompleteBookListBox = (bookListBox, hasMore, nextCursor) => {
+export const CreateCompleteBookListBox = (bookListBox, length) => {
   const blocks = [{
     type: 'section',
     text: {
@@ -76,21 +93,22 @@ export const CreateCompleteBookListBox = (bookListBox, hasMore, nextCursor) => {
     type: 'divider',
   },
   ...bookListBox,
-  hasMore && {
-    type: 'actions',
-    elements: [
+  {
+    "type": "context",
+    "elements": [
       {
-        type: 'button',
-        text: {
-          type: 'plain_text',
-          emoji: true,
-          text: '더보기',
-        },
-        value: nextCursor,
-        action_id: ACTION_ID_ENUM.BOOK_MORE,
+        "type": "image",
+        "image_url": "https://user-images.githubusercontent.com/83164003/225353904-5d0ed7dc-d7e1-456a-9e67-4caf14114fae.png",
+        "alt_text": "book"
       },
-    ],
-  },]
+      {
+        "type": "mrkdwn",
+        "text": `*총 ${length}건의 도서가 검색되었습니다.*`,
+      },
+    ]
+  }
+
+  ]
 
   return blocks;
 }

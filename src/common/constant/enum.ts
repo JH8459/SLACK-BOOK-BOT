@@ -1,3 +1,4 @@
 export const ACTION_ID_ENUM = {
-  BOOK_MORE: 'book-more'
+  RETURN_DATE: 'return-date',
+  RENT: 'rent'
 }
