@@ -1,8 +1,8 @@
-import { Injectable } from "@nestjs/common";
-import { InjectSlackClient, SlackClient } from "nestjs-slack-listener";
-import { ACTION_ID_ENUM, YN_ENUM } from '../../common/constant/enum';
+import { Injectable } from '@nestjs/common';
+import { InjectSlackClient, SlackClient } from 'nestjs-slack-listener';
+import { YN_ENUM } from '../../common/constant/enum';
 import { BookService } from '../book/book.service';
-import { CreateBookListBox, CreateCompleteBookListBox } from "./util/utility";
+import { CreateBookListBox, CreateCompleteBookListBox } from './util/utility';
 
 @Injectable()
 // 슬랙 이벤트
@@ -62,6 +62,5 @@ export class SlackActionService {
         text: `✅ ${user.user.real_name}님이 ${bookInfo.properties['도서명']['title'][0]['plain_text']}" 도서를 1주일간 대여했습니다.`
       });
     }
-
   }
 }

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectSlackClient, SlackClient } from 'nestjs-slack-listener';
-import { ACTION_ID_ENUM, YN_ENUM } from '../../common/constant/enum';
+import { YN_ENUM } from '../../common/constant/enum';
 import { BookService } from '../book/book.service';
 import { CreateBookListBox, CreateCompleteBookListBox } from './util/utility';
 
@@ -25,11 +25,14 @@ export class SlackEventService {
       // 박스 정렬
       .reduce((acc, cur) => [...acc, ...cur]);
     // 블럭들을 조합해 온전한 슬랙 블럭을 제작한다.
-    const completeBookListBox = CreateCompleteBookListBox(bookListBox, bookList.length);
-
+    const completeBookListBox = CreateCompleteBookListBox(
+      bookListBox,
+      bookList.length,
+    );
+    // 슬랙 블럭 메시지 발송
     await this.slackClient.chat.postMessage({
       channel: event.channel,
-      blocks: completeBookListBox
+      blocks: completeBookListBox,
     });
   }
 
