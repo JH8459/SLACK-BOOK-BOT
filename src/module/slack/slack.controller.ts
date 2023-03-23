@@ -19,7 +19,7 @@ import { SlackEventService } from './slackEvent.service';
 export class SlackController {
   constructor(private readonly slackEventService: SlackEventService, private readonly slackActionService: SlackActionService) { }
 
-  /** '!맛집' message 이벤트 핸들러 */
+  /** '!책' message 이벤트 핸들러 */
   @SlackEventHandler({
     eventType: 'message',
     filter: ({ event }) => event.text.includes('!책'),
@@ -28,14 +28,23 @@ export class SlackController {
     this.slackEventService.getBookList(event);
   }
 
+  /** '!반납' message 이벤트 핸들러 */
+  @SlackEventHandler({
+    eventType: 'message',
+    filter: ({ event }) => event.text.includes('!반납'),
+  })
+  async returnBook({ event }: IncomingSlackEvent<MessageEvent>) {
+    this.slackEventService.returnBook(event);
+  }
+
   /** RENT action 핸들러 */
   @SlackInteractivityHandler(ACTION_ID_ENUM.RENT)
   async rentBook({
-    channel: { id },
-    user: { name },
+    channel,
+    user: { id },
     actions: [{ value }],
   }: IncomingSlackInteractivity) {
-    const result = await this.slackActionService.rentBook(id, value, name)
+    const result = await this.slackActionService.rentBook(channel.id, value, id)
 
     return result
   }

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectSlackClient, SlackClient } from 'nestjs-slack-listener';
-import { ACTION_ID_ENUM } from '../../common/constant/enum';
+import { ACTION_ID_ENUM, YN_ENUM } from '../../common/constant/enum';
 import { BookService } from '../book/book.service';
 import { CreateBookListBox, CreateCompleteBookListBox } from './util/utility';
 
@@ -30,6 +30,18 @@ export class SlackEventService {
     await this.slackClient.chat.postMessage({
       channel: event.channel,
       blocks: completeBookListBox
+    });
+  }
+
+  async returnBook(event: any) {
+    // 슬랙 유저 정보 조회
+    const user = await this.slackClient.users.info({ user: event.user })
+    // 반납 성공 여부 조회
+    const { message, returnSuccessYn } = await this.bookService.returnBook(user.user.real_name)
+
+    await this.slackClient.chat.postMessage({
+      channel: event.channel,
+      text: returnSuccessYn === YN_ENUM.YES ? `✅ ${user.user.real_name}님${message}` : `⚠️ ${user.user.real_name}님${message}`,
     });
   }
 }
