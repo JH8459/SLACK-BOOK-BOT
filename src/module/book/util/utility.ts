@@ -29,6 +29,9 @@ export const VerificationNotionBookList = (results) => {
     const requester = result.properties['대여자']['rich_text'].length
       ? result.properties['대여자']['rich_text'][0]['plain_text']
       : null;
+    const requesterId = result.properties['슬랙ID']['rich_text'].length
+      ? result.properties['슬랙ID']['rich_text'][0]['plain_text']
+      : null;
     const date = result.properties['반납예정일자']
       ? result.properties['반납예정일자']['date']['start']
       : '불확실';
@@ -43,6 +46,7 @@ export const VerificationNotionBookList = (results) => {
       file,
       status,
       requester,
+      requesterId,
       date,
       id,
     };

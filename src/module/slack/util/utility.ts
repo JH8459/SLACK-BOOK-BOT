@@ -76,7 +76,7 @@ export const CreateCompleteBookListBox = (bookListBox, length) => {
       type: 'section',
       text: {
         type: 'mrkdwn',
-        text: `📓 ACG 사내 도서 목록입니다. \n도서를 추가하려면 우측 버튼을 눌러 저장소로 이동해 추가해주세요! 👉`,
+        text: `📓 ACG 사내 도서 목록입니다. \n모든 도서 목록을 자세히 확인하려면 우측 버튼을 눌러 저장소로 이동해주세요! 👉`,
       },
       accessory: {
         type: 'button',

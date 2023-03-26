@@ -16,7 +16,7 @@ export class SlackActionService {
     // 슬랙 유저 정보 조회
     const user = await this.slackClient.users.info({ user: userId })
     // 노션DB 업데이트 (도서리스트 DB UPDATE && 도서대출 관리대장 DB CREATE) 후 대여 할 책의 정보를 가져오는 요청
-    const { bookInfo, rentList, rentSuccessYN } = await this.bookService.rentBook(value, user.user.real_name)
+    const { bookInfo, rentList, rentSuccessYN } = await this.bookService.rentBook(value, user.user.real_name, userId)
     // 대여가 실패하는 경우 에러 분기
     if (rentSuccessYN === YN_ENUM.NO) {
       if (rentList.length) {

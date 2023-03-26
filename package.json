@@ -24,6 +24,7 @@
     "@nestjs/config": "^2.3.1",
     "@nestjs/core": "^9.0.0",
     "@nestjs/platform-express": "^9.0.0",
+    "@nestjs/schedule": "^2.2.0",
     "@nestjs/swagger": "^6.2.1",
     "nestjs-notion": "^0.2.1",
     "nestjs-slack-listener": "^1.1.1",

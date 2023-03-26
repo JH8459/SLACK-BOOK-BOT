@@ -55,7 +55,29 @@ export class BookService {
     return VerificationNotionBookList(results);
   }
 
-  async rentBook(value, userName: string): Promise<any> {
+  async getDelayedReturnBookList(): Promise<any> {
+    // 노션 API를 호출 하기 위한 정보
+    const bookListDatabaseId: string =
+      this.configService.get('NOTION_BOOK_LIST');
+    const today = new Date().toISOString().substring(0, 10);
+    const filter = {
+      property: '반납예정일자',
+      date: {
+        before: today
+      }
+    }
+    // 노션에서 도서 리스트를 가져온다.
+    const bookList = await this.notionService.databases.query({
+      database_id: bookListDatabaseId, // 도서 리스트 노션DB 저장소 ID
+      filter,
+    });
+    // 데이터 전처리 후 리턴
+    const result = VerificationNotionBookList(bookList.results);
+
+    return result;
+  }
+
+  async rentBook(value, userName: string, userId: string): Promise<any> {
     // 노션 API를 호출 하기 위한 정보
     const rentListDatabaseId: string =
       this.configService.get('NOTION_RENTAL_LIST');
@@ -71,7 +93,7 @@ export class BookService {
       const today = new Date();
       today.setDate(today.getDate() + 7);
       const returnDay = today.toISOString().substring(0, 10);
-      // 도서리스트 DB 업데이트 ("상태" & "대여자" & "반납예정일자" 속성 업데이트)
+      // 도서리스트 DB 업데이트 ("상태" & "대여자" & "슬랙ID" & "반납예정일자" 속성 업데이트)
       await this.notionService.pages.update({
         page_id: value,
         properties: {
@@ -86,6 +108,17 @@ export class BookService {
                 type: 'text',
                 text: {
                   content: userName,
+                },
+              },
+            ],
+          },
+          슬랙ID: {
+            type: 'rich_text',
+            rich_text: [
+              {
+                type: 'text',
+                text: {
+                  content: userId,
                 },
               },
             ],
