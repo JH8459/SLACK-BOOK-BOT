@@ -1,4 +1,5 @@
 import { Controller } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { ApiTags } from '@nestjs/swagger';
 import {
   IncomingSlackEvent,
@@ -18,9 +19,19 @@ import { SlackEventService } from './slackEvent.service';
 @SlackInteractivityListener()
 export class SlackController {
   constructor(
+    private readonly configService: ConfigService,
     private readonly slackEventService: SlackEventService,
     private readonly slackActionService: SlackActionService,
   ) { }
+
+  /** '!카테고리' message 이벤트 핸들러 */
+  @SlackEventHandler({
+    eventType: 'message',
+    filter: ({ event }) => event.text.includes('!카테고리'),
+  })
+  async getCategoryList({ event }: IncomingSlackEvent<MessageEvent>) {
+    this.slackEventService.getCategoryList(event);
+  }
 
   /** '!책' message 이벤트 핸들러 */
   @SlackEventHandler({
@@ -47,7 +58,20 @@ export class SlackController {
     user: { id },
     actions: [{ value }],
   }: IncomingSlackInteractivity) {
-    const result = await this.slackActionService.rentBook(channel.id, value, id)
+    // 모달에서 인입된 action은 채널을 알수없다
+    const chnnelId = channel ? channel.id : this.configService.get<string>('SLACK_CHANNEL_ID')
+    const result = await this.slackActionService.rentBook(chnnelId, value, id)
+
+    return result;
+  }
+
+  /** MODAL action 핸들러 */
+  @SlackInteractivityHandler(ACTION_ID_ENUM.MODAL)
+  async bookListModal({
+    actions: [{ value }],
+    trigger_id,
+  }: IncomingSlackInteractivity) {
+    const result = await this.slackActionService.bookListModal(value, trigger_id)
 
     return result;
   }

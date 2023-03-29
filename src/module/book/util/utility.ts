@@ -1,4 +1,18 @@
-/** 노션에서 불러온 데이터 전처리 함수 */
+/** 노션에서 불러온 카테고리 리스트 데이터 전처리 함수 */
+export const VerificationNotionCategoryList = (results) => {
+  const result = results.map((result) => {
+    // 변수 예외처리
+    const genre = result.properties['장르']
+      ? result.properties['장르']['select']['name']
+      : '';
+
+    return genre;
+  });
+
+  return result;
+}
+
+/** 노션에서 불러온 도서 리스트 데이터 전처리 함수 */
 export const VerificationNotionBookList = (results) => {
   const result = results.map((result) => {
     // 변수 예외처리

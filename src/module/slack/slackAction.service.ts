@@ -2,10 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { InjectSlackClient, SlackClient } from 'nestjs-slack-listener';
 import { YN_ENUM } from '../../common/constant/enum';
 import { BookService } from '../book/book.service';
-import { CreateBookListBox, CreateCompleteBookListBox } from './util/utility';
+import { CreateBookListBox, CreateCompleteBookListBox, CreateCompleteBookListModal } from './util/utility';
 
 @Injectable()
-// 슬랙 이벤트
+// 슬랙 액션
 export class SlackActionService {
   constructor(
     private readonly bookService: BookService,
@@ -62,5 +62,31 @@ export class SlackActionService {
         text: `✅ ${user.user.real_name}님이 ${bookInfo.properties['도서명']['title'][0]['plain_text']}" 도서를 1주일간 대여했습니다.`
       });
     }
+  }
+
+  async bookListModal(genre: string, triggerId: string): Promise<any> {
+    // 노션에서 장르별 도서 리스트를 가져오는 요청
+    const bookList = await this.bookService.getBookListGroupByGenre(genre);
+    // 노션에서 가져온 데이터를 슬랙 블럭(도서 블럭) 형태로 제작한다
+    const bookListBox = bookList
+      .map((book) => {
+        // Box를 만들어주는 함수
+        const box = CreateBookListBox(book);
+
+        return box;
+      })
+      // 박스 정렬
+      .reduce((acc, cur) => [...acc, ...cur]);
+    // 블럭들을 조합해 온전한 슬랙 모달을 제작한다.
+    const completeBookListModal: any = CreateCompleteBookListModal(
+      genre,
+      bookListBox,
+      bookList.length,
+    );
+
+    await this.slackClient.views.open({
+      trigger_id: triggerId,
+      view: completeBookListModal,
+    })
   }
 }

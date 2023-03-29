@@ -29,7 +29,7 @@ export class SchedulerService {
       // 슬랙 메시지 알림
       await this.slackClient.chat.postMessage({
         channel: slackChannelId,
-        text: `📌 ${delayUserList.join()} 반납예정기간이 지났습니다. 도서를 반납해주세요.`
+        text: `📌 ${delayUserList.join()} 반납 예정기간이 지난 도서가 있습니다. 확인 후 도서를 반납해주세요.`
       });
     }
   }
