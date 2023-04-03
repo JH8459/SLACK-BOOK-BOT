@@ -27,6 +27,7 @@
     "@nestjs/schedule": "^2.2.0",
     "@nestjs/swagger": "^6.2.1",
     "nestjs-notion": "^0.2.1",
+    "nestjs-slack-bolt": "^0.1.0",
     "nestjs-slack-listener": "^1.1.1",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.2.0"

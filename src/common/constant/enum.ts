@@ -6,5 +6,6 @@ export const YN_ENUM = {
 export const ACTION_ID_ENUM = {
   RETURN_DATE: 'return-date',
   RENT: 'rent',
-  MODAL: 'modal'
+  MODAL: 'modal',
+  SUBMISSON: 'modal-return-inputs'
 }

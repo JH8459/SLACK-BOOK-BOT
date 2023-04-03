@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectSlackClient, SlackClient } from 'nestjs-slack-listener';
 import { YN_ENUM } from '../../common/constant/enum';
 import { BookService } from '../book/book.service';
-import { CreateBookListBox, CreateCompleteBookListBox, CreateCompleteBookListModal } from './util/utility';
+import { CreateBookListBox, CreateCompleteBookListModal, CreateReturnBookModal } from './util/utility';
 
 @Injectable()
 // 슬랙 액션
@@ -27,33 +27,12 @@ export class SlackActionService {
           text: `⚠️ ${user.user.real_name}님은 "${rentList[0].title}" 도서를 ${rentList[0].date}까지 이미 대여중입니다. 기존 도서를 반납 후 다시 대여를 시도해주세요.`,
         });
       } else {
-        // 대여중인 책을 다시 누르는 경우
-        // 노션에서 도서 리스트를 가져오는 요청
-        const bookList = await this.bookService.getBookList();
-        // 노션에서 가져온 데이터를 슬랙 블럭(도서 블럭) 형태로 제작한다
-        const bookListBox = bookList
-          .map((book) => {
-            // Box를 만들어주는 함수
-            const box = CreateBookListBox(book);
-
-            return box;
-          })
-          // 박스 정렬
-          .reduce((acc, cur) => [...acc, ...cur]);
-        // 블럭들을 조합해 온전한 슬랙 블럭을 제작한다.
-        const completeBookListBox = CreateCompleteBookListBox(bookListBox, bookList.length);
-        // 대여 실패 슬랙 메시지 알림
+        // 대여중인 책을 다시 누르는 경우 대여 실패 슬랙 메시지 알림
         await this.slackClient.chat.postMessage({
           channel,
-          text: `⚠️ "${bookInfo.properties['도서명']['title'][0]['plain_text']}" 도서는 ${bookInfo.properties['대여자']['rich_text'][0]['plain_text']}님이 대여중입니다. 도서 리스트를 다시 불러옵니다.`,
-        });
-        // 도서 리스트 호출
-        await this.slackClient.chat.postMessage({
-          channel,
-          blocks: completeBookListBox
+          text: `⚠️ "${bookInfo.properties['도서명']['title'][0]['plain_text']}" 도서는 ${bookInfo.properties['대여자']['rich_text'][0]['plain_text']}님이 대여중입니다.`,
         });
       }
-
     } else {
       // 대여가 성공하는 경우
       // 슬랙 메시지 알림
@@ -88,5 +67,16 @@ export class SlackActionService {
       trigger_id: triggerId,
       view: completeBookListModal,
     })
+  }
+
+  async returnModal(triggerId: string, rentBookList, user): Promise<any> {
+    const rentBookInfo = rentBookList[0];
+    const modalValue = await this.slackClient.views.open({
+      trigger_id: triggerId,
+      view: CreateReturnBookModal(rentBookInfo, user),
+    })
+
+    console.log('✅', modalValue)
+
   }
 }

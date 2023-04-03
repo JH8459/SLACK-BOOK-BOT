@@ -4,17 +4,17 @@ import { ACTION_ID_ENUM } from '../../../common/constant/enum';
 export const CategoryDescription = (category) => {
   switch (category) {
     case '경제/경영':
-      return '경제/경영 장르 설명입니다. ~장르 목록이 확정나면 설명 텍스트를 수정하겠습니다.~';
+      return '경제/경영 관련 도서 목록을 불러옵니다.';
     case '정치/사회':
-      return '정치/사회 장르 설명입니다. ~장르 목록이 확정나면 설명 텍스트를 수정하겠습니다.~';
+      return '정치/사회 관련 도서 목록을 불러옵니다.';
     case '기술/공학':
-      return '기술/공학 장르 설명입니다. ~장르 목록이 확정나면 설명 텍스트를 수정하겠습니다.~';
+      return '기술/공학 관련 도서 목록을 불러옵니다.';
     case '자기계발':
-      return '자기계발 장르 설명입니다. ~장르 목록이 확정나면 설명 텍스트를 수정하겠습니다.~';
+      return '자기계발 관련 도서 목록을 불러옵니다.';
     case '컴퓨터/IT':
-      return '컴퓨터/IT 장르 설명입니다. ~장르 목록이 확정나면 설명 텍스트를 수정하겠습니다.~';
+      return '컴퓨터/IT 관련 도서 목록을 불러옵니다.';
     case '인문':
-      return '인문 장르 설명입니다. ~장르 목록이 확정나면 설명 텍스트를 수정하겠습니다.~';
+      return '인문 관련 도서 목록을 불러옵니다.';
     default:
       return '';
   }
@@ -133,24 +133,6 @@ export const CreateBookListBox = (book) => {
         }
       },
   ];
-  // else {
-  //   // 대여자 없는 경우에는 반납 버튼 추가
-  //   box.push({
-  //     type: 'actions',
-  //     elements: [
-  //       {
-  //         type: 'button',
-  //         text: {
-  //           type: 'plain_text',
-  //           text: '대여하기',
-  //           emoji: true,
-  //         },
-  //         value: book.id,
-  //         action_id: ACTION_ID_ENUM.RENT,
-  //       },
-  //     ],
-  //   });
-  // }
   // 구분선 추가
   box.push({
     type: 'divider',
@@ -231,6 +213,112 @@ export const CreateCompleteBookListModal = (genre: string, bookListBox, length: 
     },
     blocks: bookListBox
   }
+
+  return modalView;
+};
+
+/** 반납 모달 생성 함수 */
+export const CreateReturnBookModal = (rentBookInfo, user): any => {
+  const modalView = {
+    type: "modal",
+    callback_id: "modal-return-inputs",
+    submit: {
+      type: "plain_text",
+      text: "반납하기",
+      emoji: true
+    },
+    close: {
+      type: "plain_text",
+      text: "취소",
+      emoji: true
+    },
+    title: {
+      type: "plain_text",
+      text: `${rentBookInfo.title} 반납하기`,
+      emoji: true
+    },
+    blocks: [
+      {
+        type: "section",
+        text: {
+          type: "plain_text",
+          text: `👋 안녕하세요 ${user.user.real_name}님!\n\n도서 반납 전 평점과 후기를 남겨주시는건 어떨까요 ? 🤔`,
+          emoji: true
+        }
+      },
+      {
+        type: "divider"
+      },
+      {
+        type: "input",
+        block_id: "star-section",
+        label: {
+          type: "plain_text",
+          text: "이 책은 전반적으로 어땠나요? ⭐️으로 알려주세요.",
+          emoji: true
+        },
+        element: {
+          type: "radio_buttons",
+          options: [
+            {
+              text: {
+                type: "plain_text",
+                text: "⭐️",
+                emoji: true
+              },
+              value: "1"
+            },
+            {
+              text: {
+                type: "plain_text",
+                text: "⭐️⭐️",
+                emoji: true
+              },
+              value: "2"
+            },
+            {
+              text: {
+                type: "plain_text",
+                text: "⭐️⭐️⭐️",
+                emoji: true
+              },
+              value: "3"
+            },
+            {
+              text: {
+                type: "plain_text",
+                text: "⭐️⭐️⭐️⭐️",
+                emoji: true
+              },
+              value: "4"
+            },
+            {
+              text: {
+                type: "plain_text",
+                text: "⭐️⭐️⭐️⭐️⭐️",
+                emoji: true
+              },
+              value: "5"
+            }
+          ]
+        }
+      },
+      {
+        type: "input",
+        block_id: "reply-section",
+        label: {
+          type: "plain_text",
+          text: "이 책의 한줄 감상평을 남겨주세요.",
+          emoji: true
+        },
+        element: {
+          type: "plain_text_input",
+          multiline: true
+        },
+        optional: true
+      }
+    ]
+  };
 
   return modalView;
 };
