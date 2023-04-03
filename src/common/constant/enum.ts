@@ -7,5 +7,8 @@ export const ACTION_ID_ENUM = {
   RETURN_DATE: 'return-date',
   RENT: 'rent',
   MODAL: 'modal',
-  SUBMISSON: 'modal-return-inputs'
+}
+
+export const FILTER_EVENT_TYPE = {
+  VIEW_SUBMISSION: 'view_submission'
 }

@@ -71,12 +71,10 @@ export class SlackActionService {
 
   async returnModal(triggerId: string, rentBookList, user): Promise<any> {
     const rentBookInfo = rentBookList[0];
-    const modalValue = await this.slackClient.views.open({
+
+    await this.slackClient.views.open({
       trigger_id: triggerId,
       view: CreateReturnBookModal(rentBookInfo, user),
     })
-
-    console.log('✅', modalValue)
-
   }
 }

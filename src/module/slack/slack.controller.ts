@@ -1,4 +1,4 @@
-import { Controller, Post, Req } from '@nestjs/common';
+import { Controller, HttpCode, Post, Req } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ApiTags } from '@nestjs/swagger';
 import {
@@ -11,7 +11,7 @@ import {
   SlackInteractivityHandler,
   SlackInteractivityListener,
 } from 'nestjs-slack-listener';
-import { ACTION_ID_ENUM } from '../../common/constant/enum';
+import { ACTION_ID_ENUM, FILTER_EVENT_TYPE } from '../../common/constant/enum';
 import { BookService } from '../book/book.service';
 import { SlackActionService } from './slackAction.service';
 import { SlackEventService } from './slackEvent.service';
@@ -28,6 +28,24 @@ export class SlackController {
     private readonly slackActionService: SlackActionService,
     @InjectSlackClient() private readonly slackClient: SlackClient,
   ) { }
+
+  /** MODAL submit 핸들러 */
+  @SlackInteractivityHandler({
+    filter: (event) => event.type.includes(FILTER_EVENT_TYPE.VIEW_SUBMISSION)
+  })
+  async test(value: IncomingSlackInteractivity) {
+    try {
+      if (value['view'].callback_id === 'modal-return-inputs') {
+        console.log('✅ value: ', value['view'].state.values['star-section'])
+        console.log('✅ value: ', value['view'].state.values['reply-section'])
+
+
+      }
+    } catch (err) {
+      console.log(err)
+    }
+
+  }
 
   /** '!카테고리' message 이벤트 핸들러 */
   @SlackEventHandler({
@@ -68,6 +86,8 @@ export class SlackController {
         const rentBookList = await this.bookService.getBookList(user.user.real_name)
         if (rentBookList.length) {
           await this.slackActionService.returnModal(body.trigger_id, rentBookList, user);
+
+          return { statusCode: 200 }
         } else {
           return {
             response_type: "ephemeral",
@@ -81,23 +101,6 @@ export class SlackController {
         response_type: "ephemeral",
         text: `⚠️ 일시적 오류가 발생했습니다. 다시 시도해주세요.`
       }
-    }
-
-  }
-
-  /** MODAL submit 핸들러 */
-  @SlackInteractivityHandler({
-    filter: (event) => event.type.includes('view_submission')
-  })
-  async test(value: IncomingSlackInteractivity) {
-    try {
-      console.log('✅ value: ', value)
-      console.log('✅ value: ', value['view'].state.values['star-section'])
-      console.log('✅ value: ', value['view'].state.values['reply-section'])
-      return;
-
-    } catch (err) {
-      console.log(err)
     }
 
   }
