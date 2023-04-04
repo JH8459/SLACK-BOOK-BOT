@@ -36,7 +36,7 @@ exports.VerificationNotionBookList = (results) => {
     const requesterId = result.properties['슬랙ID']['rich_text'].length
       ? result.properties['슬랙ID']['rich_text'][0]['plain_text']
       : null;
-    const date = result.properties['반납예정일자'] ? result.properties['반납예정일자']['date']['start'] : '불확실';
+    const date = result.properties['반납예정일자']['date'] ? result.properties['반납예정일자']['date']['start'] : '불확실';
     const id = result.id;
 
     return {
