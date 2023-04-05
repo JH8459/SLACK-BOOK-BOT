@@ -127,7 +127,7 @@ exports.NotionBookListGroupByUser = async (userName) => {
 
 // NOTION DB 저장소 도서 정보를 대여 상태로 업데이트하는 함수
 exports.NotionUpdateRentBookInfo = async (pageId, userName, userId, returnDay) => {
-  // 도서 정보 업데이트 (대여중 & 대여자 & 슬랙ID & 반납일자)
+  // 도서 정보 업데이트 ("상태" & "대여자" & "슬랙ID" & "반납예정일자" 속성)
   await notionClient.pages.update({
     page_id: pageId,
     properties: {
@@ -161,6 +161,43 @@ exports.NotionUpdateRentBookInfo = async (pageId, userName, userId, returnDay) =
         type: 'date',
         date: { start: returnDay },
       },
+    },
+  });
+}
+
+// NOTION DB 저장소 도서 정보를 반납 상태로 업데이트하는 함수
+exports.NotionUpdateReturnBookInfo = async (bookInfo) => {
+  // 도서 정보 업데이트 ("상태" & "대여자" & "슬랙ID" & "반납예정일자" 속성)
+  await notionClient.pages.update({
+    page_id: bookInfo.id,
+    properties: {
+      상태: {
+        type: 'select',
+        select: { id: 'CST`', name: '대여가능', color: 'green' },
+      },
+      대여자: {
+        type: 'rich_text',
+        rich_text: [
+          {
+            type: 'text',
+            text: {
+              content: '',
+            },
+          },
+        ],
+      },
+      슬랙ID: {
+        type: 'rich_text',
+        rich_text: [
+          {
+            type: 'text',
+            text: {
+              content: '',
+            },
+          },
+        ],
+      },
+      반납예정일자: { type: 'date', date: null },
     },
   });
 }

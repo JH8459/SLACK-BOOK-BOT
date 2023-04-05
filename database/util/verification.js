@@ -19,6 +19,8 @@ exports.VerificationNotionBookList = (results) => {
     const author = result.properties['저자']['rich_text'].length
       ? result.properties['저자']['rich_text'][0]['plain_text']
       : '';
+    const score = result.properties['평점'].rollup.number;
+    const replyCount = result.properties['후기(건)'].rollup.number;
     const link = result.properties['링크'] ? result.properties['링크']['url'] : '';
     const image = result.properties['이미지'] ? result.properties['이미지']['files'][0]['name'] : '';
     const file = result.properties['첨부파일']['files'].length
@@ -43,6 +45,8 @@ exports.VerificationNotionBookList = (results) => {
       genre,
       title,
       author,
+      score,
+      replyCount,
       link,
       image,
       file,

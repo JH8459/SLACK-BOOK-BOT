@@ -17,6 +17,28 @@ exports.CreateBookListBox = (book) => {
         alt_text: 'ACG Book Thumbnail',
       },
     },
+    book.replyCount ? {
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: book.score ? `⭐️: ${book.score.toFixed(2)}점` : `⭐️: 독서 평점이 없습니다.`,
+      },
+      accessory: {
+				type: 'button',
+				text: {
+					type: 'plain_text',
+					text: `💬 후기 (${book.replyCount}건)`,
+					emoji: true
+				},
+				action_id: 'reply-action'
+			}
+    } : {
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: book.score ? `⭐️: ${book.score.toFixed(2)}점` : `⭐️: 독서 평점이 없습니다.`,
+      },
+    },
     book.requester ?
       {
         type: 'context',

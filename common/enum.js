@@ -9,12 +9,12 @@ const ACTION_ID_ENUM = {
   MODAL: 'modal',
 };
 
-const FILTER_EVENT_TYPE = {
-  VIEW_SUBMISSION: 'view_submission',
+const SUBMISSION_TYPE_ENUM = {
+  RETURN_SUBMISSION: 'return-submit',
 };
 
 module.exports = {
   YN_ENUM,
   ACTION_ID_ENUM,
-  FILTER_EVENT_TYPE,
+  SUBMISSION_TYPE_ENUM,
 };

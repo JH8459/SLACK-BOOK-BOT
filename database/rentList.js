@@ -10,8 +10,8 @@ const notionClient = new Client({
 // 노션 DB 저장소 ID
 const rentListNotionId = process.env.NOTION_RENTAL_LIST;
 
-// NOTION DB(도서 대출 관리대장 DB) 생성 (관계 설정)
-exports.NotionCreateRentInfo = async (pageId, userName, returnDay) => {
+// NOTION DB(도서 대출 관리대장 DB) 도서 대여 기록을 생성하는 함수
+exports.NotionCreateRentLogInfo = async (pageId, userName, returnDay) => {
   await notionClient.pages.create({
     parent: { database_id: rentListNotionId },
     properties: {
@@ -41,6 +41,82 @@ exports.NotionCreateRentInfo = async (pageId, userName, returnDay) => {
   });
 }
 
+// NOTION DB(도서 대출 관리대장 DB) 도서 반납 기록을 업데이트하는 함수
+exports.NotionUpdateReturnLogInfo = async (bookInfo, star, reply) => {
+  // 필터 옵션
+  const filter = {
+    and: [
+      {
+        property: '도서명',
+        relation: {
+          contains: bookInfo.id,
+        },
+      },
+      {
+        property: '대여자',
+        rich_text: {
+          contains: bookInfo.requester,
+        },
+      },
+      {
+        property: '반납일자',
+        date: {
+          is_empty: true,
+        },
+      },
+    ],
+  };
+  // 도서 대출 기록 조회 요청
+  const rentLogList = await notionClient.databases.query({
+    database_id: rentListNotionId, // 도서대출관리대장 노션DB 저장소 ID
+    filter,
+  });
+  // 한국시간 계산 offSet 변수 선언
+  const offset = 1000 * 60 * 60 * 9;
+  // 도서 대출 기록 정보 업데이트 ("반납일자", "별점", "한줄평*")
+  await notionClient.pages.update({
+    page_id: rentLogList.results[0].id,
+    properties: reply ? {
+      반납일자: {
+        type: 'date',
+        date: {
+          start: new Date(new Date().getTime() + offset)
+            .toISOString()
+            .substring(0, 10),
+        },
+      },
+      별점: {
+        type: 'number',
+        number: Number(star),
+      },
+      한줄평: {
+        type: 'rich_text',
+        rich_text: [
+          {
+            type: 'text',
+            text: {
+              content: reply,
+            },
+          },
+        ],
+      },
+    } : {
+      반납일자: {
+        type: 'date',
+        date: {
+          start: new Date(new Date().getTime() + offset)
+            .toISOString()
+            .substring(0, 10),
+        },
+      },
+      별점: {
+        type: 'number',
+        number: Number(star),
+      },
+    },
+  });
+}
+
 // NOTION DB를 조회해 대여 가능여부를 리턴하는 함수
 exports.NotionRentBookInfo = async (pageId, userName, userId) => {
   // 대여 성공 여부를 판별하는 변수 rentYN 선언 (초기값 = 'N')
@@ -62,7 +138,7 @@ exports.NotionRentBookInfo = async (pageId, userName, userId) => {
     // 도서리스트 DB 대여 상태로 업데이트 ("상태" & "대여자" & "슬랙ID" & "반납예정일자" 속성 업데이트)
     await NotionUpdateRentBookInfo(pageId, userName, userId, returnDay);
     // 대출 관리대장 DB 생성
-    await this.NotionCreateRentInfo(pageId, userName, returnDay);
+    await this.NotionCreateRentLogInfo(pageId, userName, returnDay);
     rentSuccessYN = YN_ENUM.YES;
   }
   // 대상 도서 정보(bookInfo)와 기존 도서 대여 목록(rentList) 그리고 대여 성공 유무(rentSuccessYN) 리턴
