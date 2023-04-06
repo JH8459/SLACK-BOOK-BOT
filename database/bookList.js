@@ -29,10 +29,10 @@ exports.NotionCategoryList = async () => {
   }
   // 데이터 전처리
   const verificationCategoryList = VerificationNotionCategoryList(results);
-  // 중복제거
+  // 중복제거 & 정렬
   const uniqueCategoryList = verificationCategoryList.filter(
     (category, idx) => verificationCategoryList.indexOf(category) === idx,
-  );
+  ).sort((a, b) => a > b ? 1 : -1);
 
   return uniqueCategoryList;
 };

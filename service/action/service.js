@@ -1,5 +1,5 @@
 const { NotionBookListGroupByGenre } = require('../../database/bookList');
-const { CreateBookListBox, CreateCompleteBookListModal } = require('./util/createBox');
+const { CreateBookListBox, CreateCompleteBookListModal } = require('./util/createModal');
 
 
 exports.CreateBookListModal = async (genre) => {

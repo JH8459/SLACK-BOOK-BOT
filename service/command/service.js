@@ -18,4 +18,4 @@ exports.CreateCategoryListBox = async () => {
   const completeCategoryListBox = CreateCompleteCategoryListBox(categoryListBox, categoryListBox.length);
 
   return completeCategoryListBox;
-}
+};

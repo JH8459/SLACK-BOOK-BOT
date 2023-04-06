@@ -30,7 +30,8 @@ exports.CreateBookListBox = (book) => {
 					text: `💬 후기 (${book.replyCount}건)`,
 					emoji: true
 				},
-				action_id: 'reply-action'
+        value: book.id,
+				action_id: ACTION_ID_ENUM.REPLY,
 			}
     } : {
       type: 'section',
