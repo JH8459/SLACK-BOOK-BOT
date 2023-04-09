@@ -167,6 +167,28 @@ exports.NotionBookListGroupBySearchText = async (searchText) => {
   return verificationBookList;
 };
 
+// NOTION DB 저장소에 존재하는 미납 도서 목록을 가져오는 함수
+exports.NotionUnpaidBookList = async () => {
+  // 오늘 날짜
+  const offset = 1000 * 60 * 60 * 9;
+  const today = new Date(new Date().getTime() + offset);
+  const filter = {
+    property: '반납예정일자',
+    date: {
+      before: today,
+    },
+  };
+  // 노션에서 도서 리스트를 가져온다.
+  const bookList = await notionClient.databases.query({
+    database_id: bookListNotionId,
+    filter, // 미납 필터
+  });
+  // 데이터 전처리
+  const verificationBookList = VerificationNotionBookList(bookList.results);
+
+  return verificationBookList;
+};
+
 // NOTION DB 저장소 도서 정보를 대여 상태로 업데이트하는 함수
 exports.NotionUpdateRentBookInfo = async (pageId, userName, slackId, returnDay) => {
   // 도서 정보 업데이트 ("상태" & "대여자" & "슬랙ID" & "반납예정일자" 속성)

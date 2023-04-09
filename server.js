@@ -3,7 +3,7 @@ const { CreateCategoryListBox, CreateBookListModalBySearchText } = require('./se
 const { ACTION_ID_ENUM, YN_ENUM, SUBMISSION_TYPE_ENUM, REQUEST_STATUS_ENUM } = require('./common/enum');
 const { CreateBookListModalByGenre } = require('./service/action/service');
 const { NotionRentBookInfo } = require('./database/rentList');
-const { NotionBookListGroupByUser } = require('./database/bookList');
+const { NotionBookListGroupByUser, NotionUnpaidBookList } = require('./database/bookList');
 const { CreateReturnBookModalView, CreateRequestBookModalView } = require('./service/command/util/createModal');
 const { ReturnBookAlert } = require('./service/submission/service');
 const {
@@ -292,10 +292,10 @@ slackApp.view(SUBMISSION_TYPE_ENUM.REQUEST_SUBMISSION, async ({ ack, body, view,
  *! Scheduler Router List
  */
 // '* * * * *' (TEST)
-// 도서 구매 요청 알림 스케쥴러 (월~금 & 12시, 16시)
+// 도서 구매 요청 알림 스케쥴러 (월~금 & 11시, 16시)
 const requestRule = new schedule.RecurrenceRule();
 requestRule.dayOfWeek = new schedule.Range(1, 5);
-requestRule.hour = [12, 16];
+requestRule.hour = [11, 16];
 requestRule.minute = 0;
 requestRule.tz = 'Asia/Seoul';
 
@@ -323,10 +323,10 @@ schedule.scheduleJob(requestRule, async () => {
   }
 });
 
-// 도서 구매 진행상황 알림 스케쥴러 (월~금 & 09, 11, 13, 15, 17시)
+// 도서 구매 진행상황 알림 스케쥴러 (월~금 & 10, 12, 14, 16, 18시)
 const progressRule = new schedule.RecurrenceRule();
 progressRule.dayOfWeek = new schedule.Range(1, 5);
-progressRule.hour = [9, 11, 13, 15, 17];
+progressRule.hour = [10, 12, 14, 16, 18];
 progressRule.minute = 0;
 progressRule.tz = 'Asia/Seoul';
 
@@ -383,6 +383,30 @@ schedule.scheduleJob(progressRule, async () => {
           user: completeRequest.slackId,
           text: `📌 <@${completeRequest.slackId}> 신청하신 "${completeRequest.title}" 도서가 ${completeRequest.status} 상태로 변경되었습니다.`,
           blocks: CreateAlertMessageBox(REQUEST_STATUS_ENUM.COMPLETE, completeRequest),
+        });
+      }),
+    );
+  }
+});
+
+// 도서 반납 미납 진행상황 알림 스케쥴러 (월~금 & 09시)
+const unpaidRule = new schedule.RecurrenceRule();
+unpaidRule.dayOfWeek = new schedule.Range(1, 5);
+unpaidRule.hour = 9;
+unpaidRule.minute = 0;
+unpaidRule.tz = 'Asia/Seoul';
+
+schedule.scheduleJob(unpaidRule, async () => {
+  const unpaidBookList = await NotionUnpaidBookList();
+  // 미납자 존재시
+  if (unpaidBookList.length) {
+    await Promise.all(
+      unpaidBookList.map(async (unpaidBookInfo) => {
+        // 슬랙 메시지 알림
+        await slackApp.client.chat.postEphemeral({
+          channel: process.env.SLACK_CHANNEL_ID,
+          user: unpaidBookInfo.slackId,
+          text: `⛔️ <@${unpaidBookInfo.slackId}> 반납 예정기간이 지난 도서("${unpaidBookInfo.title}")가 있습니다. 도서를 반납해주세요.`,
         });
       }),
     );
