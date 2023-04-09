@@ -1,12 +1,19 @@
 const { App } = require('@slack/bolt');
 const { CreateCategoryListBox } = require('./service/command/service');
-const { ACTION_ID_ENUM, YN_ENUM, SUBMISSION_TYPE_ENUM } = require('./common/enum');
+const { ACTION_ID_ENUM, YN_ENUM, SUBMISSION_TYPE_ENUM, REQUEST_STATUS_ENUM } = require('./common/enum');
 const { CreateBookListModal } = require('./service/action/service');
 const { NotionRentBookInfo } = require('./database/rentList');
 const { NotionBookListGroupByUser } = require('./database/bookList');
 const { CreateReturnBookModalView, CreateRequestBookModalView } = require('./service/command/util/createModal');
 const { ReturnBookAlert } = require('./service/submission/service');
-const { NotionCreateRequestLogInfo } = require('./database/requestList');
+const {
+  NotionCreateRequestLogInfo,
+  NotionRequestList,
+  NotionRequestAlertList,
+  NotionRequestUpdateAlertInfo,
+} = require('./database/requestList');
+const schedule = require('node-schedule');
+const { CreateAlertMessageBox } = require('./service/scheduler/util/createBox');
 const dotenv = require('dotenv').config();
 
 // 슬랙 볼트 앱 초기화
@@ -46,7 +53,7 @@ slackApp.command('/반납', async ({ ack, command, client }) => {
     // 반납 요청 슬랙 유저 정보 조회
     const user = await client.users.info({ user: command.user_id });
     // 반납 요청 유저의 기존 대여 도서 리스트 조회
-    const rentBookList = await NotionBookListGroupByUser(user.user.profile.display_name);
+    const rentBookList = await NotionBookListGroupByUser(command.user_id);
 
     if (rentBookList.length) {
       // 장르 별 도서 리스트 모달 OPEN
@@ -191,7 +198,7 @@ slackApp.view(SUBMISSION_TYPE_ENUM.RETURN_SUBMISSION, async ({ ack, body, view, 
     const star = view.state.values['star-section']['input-star']['selected_option'].value;
     const reply = view.state.values['reply-section']['input-reply'].value;
     // 유저 상태에 따른 반납 알림 메시지 & 반납 성공 상태 조회
-    const { message, returnSuccessYn } = await ReturnBookAlert(user.user.profile.display_name, star, reply);
+    const { message, returnSuccessYn } = await ReturnBookAlert(body.user.id, star, reply);
     // returnSuccessYn에 따라 슬랙 메시지 알림
     returnSuccessYn === YN_ENUM.YES
       ? await client.chat.postMessage({
@@ -225,8 +232,23 @@ slackApp.view(SUBMISSION_TYPE_ENUM.REQUEST_SUBMISSION, async ({ ack, body, view,
     const price = view.state.values['price-section']['input-price'].value;
     const url = view.state.values['url-section']['input-url'].value;
     const reason = view.state.values['reason-section']['input-reason'].value;
-
-    await NotionCreateRequestLogInfo(user.user.profile.display_name, purpose, title, author, price, url, reason);
+    // 구매신청 DB 생성
+    await NotionCreateRequestLogInfo(
+      user.user.profile.display_name,
+      body.user.id,
+      purpose,
+      title,
+      author,
+      price,
+      url,
+      reason,
+    );
+    // 슬랙 메시지 알림
+    await client.chat.postEphemeral({
+      channel: process.env.SLACK_CHANNEL_ID,
+      user: body.user.id,
+      text: `✅ <@${body.user.id}> 구매신청이 완료되었습니다! 신청하신 도서는 경영지원팀의 검토 후 최종 구매 확정이 됩니다. 진행 상황은 알림으로 안내드리겠습니다.`,
+    });
   } catch (error) {
     console.error(error);
     await client.chat.postEphemeral({
@@ -234,6 +256,107 @@ slackApp.view(SUBMISSION_TYPE_ENUM.REQUEST_SUBMISSION, async ({ ack, body, view,
       user: body.user.id,
       text: `⚠️ 네트워크 환경으로 일시적인 오류가 발생했습니다. 다시 시도해주세요!`,
     });
+  }
+});
+
+/**
+ *! Scheduler Router List
+ */
+// '* * * * *' (TEST)
+// 도서 구매 요청 알림 스케쥴러 (월~금 & 12시, 16시)
+const requestRule = new schedule.RecurrenceRule();
+requestRule.dayOfWeek = new schedule.Range(1, 5);
+requestRule.hour = [12, 16];
+requestRule.minute = 0;
+requestRule.tz = 'Asia/Seoul';
+
+schedule.scheduleJob(requestRule, async () => {
+  // "신청"  상태의 구매 신청 리스트를 가져오는 요청
+  const requestBookList = await NotionRequestList(REQUEST_STATUS_ENUM.REQUEST);
+  // 경영관리팀 + 개발자 슬랙ID 리스트
+  const ceo = process.env.CEO_SLACK_ID;
+  const senior = process.env.SENIOR_MANAGEMENT_SLACK_ID;
+  const junior = process.env.JUNIOR_MANAGEMENT_SLACK_ID;
+  const developer = process.env.DEVELOPER_SLACK_ID;
+  const managerIDList = [ceo, senior, junior, developer];
+
+  if (requestBookList.length) {
+    // 경영관리팀 매니저 슬랙 메시지 알림
+    await Promise.all(
+      managerIDList.map(async (managerID) => {
+        await slackApp.client.chat.postEphemeral({
+          channel: process.env.SLACK_CHANNEL_ID,
+          user: managerID,
+          text: `✅ <@${managerID}> ${requestBookList.length}개의 신규 도서 구매 신청이 있습니다. 확인해주세요.`,
+        });
+      }),
+    );
+  }
+});
+
+// 도서 구매 진행상황 알림 스케쥴러 (월~금 & 09, 11, 13, 15, 17시)
+const progressRule = new schedule.RecurrenceRule();
+progressRule.dayOfWeek = new schedule.Range(1, 5);
+progressRule.hour = [9, 11, 13, 15, 17];
+progressRule.minute = 0;
+progressRule.tz = 'Asia/Seoul';
+
+schedule.scheduleJob(progressRule, async () => {
+  // "승인" 상태의 구매 신청 리스트를 가져오는 요청
+  const approvalRequestList = await NotionRequestAlertList(REQUEST_STATUS_ENUM.APPROVAL);
+  // "반려" & "등록완료" 상태의 구매 신청 리스트를 가져오는 요청
+  const rejectRequestList = await NotionRequestAlertList(REQUEST_STATUS_ENUM.REJECT);
+  const completeRequestList = await NotionRequestAlertList(REQUEST_STATUS_ENUM.COMPLETE);
+
+  if (approvalRequestList.length) {
+    // "승인" 상태 변경 슬랙 메시지 알림
+    await Promise.all(
+      approvalRequestList.map(async (approvalRequest) => {
+        // 알림 상태 업데이트
+        await NotionRequestUpdateAlertInfo(approvalRequest.id, REQUEST_STATUS_ENUM.APPROVAL);
+        // 슬랙 메시지 알림
+        await slackApp.client.chat.postEphemeral({
+          channel: process.env.SLACK_CHANNEL_ID,
+          user: approvalRequest.slackId,
+          text: `📌 <@${approvalRequest.slackId}> 신청하신 "${approvalRequest.title}" 도서가 ${approvalRequest.status} 상태로 변경되었습니다.`,
+          blocks: CreateAlertMessageBox(REQUEST_STATUS_ENUM.APPROVAL, approvalRequest),
+        });
+      }),
+    );
+  }
+
+  if (rejectRequestList.length) {
+    // "반려" 상태 변경 슬랙 메시지 알림
+    await Promise.all(
+      rejectRequestList.map(async (rejectRequest) => {
+        // 알림 상태 업데이트
+        await NotionRequestUpdateAlertInfo(rejectRequest.id, REQUEST_STATUS_ENUM.REJECT);
+        // 슬랙 메시지 알림
+        await slackApp.client.chat.postEphemeral({
+          channel: process.env.SLACK_CHANNEL_ID,
+          user: rejectRequest.slackId,
+          text: `📌 <@${rejectRequest.slackId}> 신청하신 "${rejectRequest.title}" 도서가 ${rejectRequest.status} 상태로 변경되었습니다.`,
+          blocks: CreateAlertMessageBox(REQUEST_STATUS_ENUM.REJECT, rejectRequest),
+        });
+      }),
+    );
+  }
+
+  if (completeRequestList.length) {
+    // "등록완료" 상태 변경 슬랙 메시지 알림
+    await Promise.all(
+      completeRequestList.map(async (completeRequest) => {
+        // 알림 상태 업데이트
+        await NotionRequestUpdateAlertInfo(completeRequest.id, REQUEST_STATUS_ENUM.COMPLETE);
+        // 슬랙 메시지 알림
+        await slackApp.client.chat.postEphemeral({
+          channel: process.env.SLACK_CHANNEL_ID,
+          user: completeRequest.slackId,
+          text: `📌 <@${completeRequest.slackId}> 신청하신 "${completeRequest.title}" 도서가 ${completeRequest.status} 상태로 변경되었습니다.`,
+          blocks: CreateAlertMessageBox(REQUEST_STATUS_ENUM.COMPLETE, completeRequest),
+        });
+      }),
+    );
   }
 });
 

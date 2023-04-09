@@ -35,10 +35,12 @@ exports.VerificationNotionBookList = (results) => {
     const requester = result.properties['대여자']['rich_text'].length
       ? result.properties['대여자']['rich_text'][0]['plain_text']
       : null;
-    const requesterId = result.properties['슬랙ID']['rich_text'].length
+    const slackId = result.properties['슬랙ID']['rich_text'].length
       ? result.properties['슬랙ID']['rich_text'][0]['plain_text']
       : null;
-    const date = result.properties['반납예정일자']['date'] ? result.properties['반납예정일자']['date']['start'] : '불확실';
+    const date = result.properties['반납예정일자']['date']
+      ? result.properties['반납예정일자']['date']['start']
+      : '불확실';
     const id = result.id;
 
     return {
@@ -52,8 +54,54 @@ exports.VerificationNotionBookList = (results) => {
       file,
       status,
       requester,
-      requesterId,
+      slackId,
       date,
+      id,
+    };
+  });
+
+  return result;
+};
+
+// 노션에서 불러온 구매 신청 리스트 데이터 전처리 함수
+exports.VerificationNotionRequestList = (results) => {
+  const result = results.map((result) => {
+    // 변수 예외처리
+    const requester = result.properties['신청자'] ? result.properties['신청자']['title'][0]['plain_text'] : '';
+    const slackId = result.properties['슬랙ID']['rich_text'].length
+      ? result.properties['슬랙ID']['rich_text'][0]['plain_text']
+      : null;
+    const purpose = result.properties['목적'].select.name;
+    const status = result.properties['상태'].status.name;
+    const rejectReason = result.properties['반려사유']['rich_text'].length
+      ? result.properties['반려사유']['rich_text'][0]['plain_text']
+      : null;
+    const title = result.properties['도서명']['rich_text'][0]['plain_text'];
+    const author = result.properties['저자']['rich_text'][0]['plain_text'];
+    const price = result.properties['가격'].number;
+    const url = result.properties['구매링크'].url;
+    const requestReason = result.properties['신청사유']['rich_text'].length
+      ? result.properties['신청사유']['rich_text'][0]['plain_text']
+      : null;
+    const requestDate = result.properties['신청일자'].date.start;
+    const progressAlert = result.properties['진행알림'].checkbox;
+    const finalAlert = result.properties['최종알림'].checkbox;
+    const id = result.id;
+
+    return {
+      requester,
+      slackId,
+      purpose,
+      status,
+      rejectReason,
+      title,
+      author,
+      price,
+      url,
+      requestReason,
+      requestDate,
+      progressAlert,
+      finalAlert,
       id,
     };
   });

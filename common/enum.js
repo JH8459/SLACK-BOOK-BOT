@@ -8,6 +8,14 @@ const REQUEST_TYPE_ENUM = {
   DEVELOPMENT: '자기개발',
 };
 
+const REQUEST_STATUS_ENUM = {
+  REQUEST: '신청',
+  CHECK: '검토중',
+  APPROVAL: '승인',
+  COMPLETE: '등록완료',
+  REJECT: '반려',
+};
+
 const ACTION_ID_ENUM = {
   RETURN_DATE: 'return-date',
   RENT: 'rent',
@@ -28,6 +36,7 @@ const SUBMISSION_TYPE_ENUM = {
 module.exports = {
   YN_ENUM,
   REQUEST_TYPE_ENUM,
+  REQUEST_STATUS_ENUM,
   ACTION_ID_ENUM,
   SUBMISSION_TYPE_ENUM,
 };

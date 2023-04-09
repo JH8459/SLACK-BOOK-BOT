@@ -30,9 +30,9 @@ exports.NotionCategoryList = async () => {
   // 데이터 전처리
   const verificationCategoryList = VerificationNotionCategoryList(results);
   // 중복제거 & 정렬
-  const uniqueCategoryList = verificationCategoryList.filter(
-    (category, idx) => verificationCategoryList.indexOf(category) === idx,
-  ).sort((a, b) => a > b ? 1 : -1);
+  const uniqueCategoryList = verificationCategoryList
+    .filter((category, idx) => verificationCategoryList.indexOf(category) === idx)
+    .sort((a, b) => (a > b ? 1 : -1));
 
   return uniqueCategoryList;
 };
@@ -80,7 +80,7 @@ exports.NotionBookListGroupByGenre = async (genre) => {
 };
 
 // NOTION DB 저장소에 존재하는 사용자 별 도서 목록을 가져오는 함수
-exports.NotionBookListGroupByUser = async (userName) => {
+exports.NotionBookListGroupByUser = async (slackId) => {
   // 도서 리스트를 담을 변수
   let results = [];
   // 정렬 옵션
@@ -96,9 +96,9 @@ exports.NotionBookListGroupByUser = async (userName) => {
   ];
   // 필터 옵션
   const filter = {
-    property: '대여자',
+    property: '슬랙ID',
     rich_text: {
-      contains: userName,
+      contains: slackId,
     },
   };
   // 노션에서 도서 리스트를 가져온다.
@@ -126,7 +126,7 @@ exports.NotionBookListGroupByUser = async (userName) => {
 };
 
 // NOTION DB 저장소 도서 정보를 대여 상태로 업데이트하는 함수
-exports.NotionUpdateRentBookInfo = async (pageId, userName, userId, returnDay) => {
+exports.NotionUpdateRentBookInfo = async (pageId, userName, slackId, returnDay) => {
   // 도서 정보 업데이트 ("상태" & "대여자" & "슬랙ID" & "반납예정일자" 속성)
   await notionClient.pages.update({
     page_id: pageId,
@@ -152,7 +152,7 @@ exports.NotionUpdateRentBookInfo = async (pageId, userName, userId, returnDay) =
           {
             type: 'text',
             text: {
-              content: userId,
+              content: slackId,
             },
           },
         ],
@@ -163,7 +163,7 @@ exports.NotionUpdateRentBookInfo = async (pageId, userName, userId, returnDay) =
       },
     },
   });
-}
+};
 
 // NOTION DB 저장소 도서 정보를 반납 상태로 업데이트하는 함수
 exports.NotionUpdateReturnBookInfo = async (bookInfo) => {
@@ -200,4 +200,4 @@ exports.NotionUpdateReturnBookInfo = async (bookInfo) => {
       반납예정일자: { type: 'date', date: null },
     },
   });
-}
+};
