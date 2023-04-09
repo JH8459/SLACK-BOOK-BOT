@@ -1,7 +1,7 @@
 const { App } = require('@slack/bolt');
-const { CreateCategoryListBox } = require('./service/command/service');
+const { CreateCategoryListBox, CreateBookListModalBySearchText } = require('./service/command/service');
 const { ACTION_ID_ENUM, YN_ENUM, SUBMISSION_TYPE_ENUM, REQUEST_STATUS_ENUM } = require('./common/enum');
-const { CreateBookListModal } = require('./service/action/service');
+const { CreateBookListModalByGenre } = require('./service/action/service');
 const { NotionRentBookInfo } = require('./database/rentList');
 const { NotionBookListGroupByUser } = require('./database/bookList');
 const { CreateReturnBookModalView, CreateRequestBookModalView } = require('./service/command/util/createModal');
@@ -97,6 +97,35 @@ slackApp.command('/신청', async ({ ack, command, client }) => {
   }
 });
 
+slackApp.command('/검색', async ({ ack, command, client }) => {
+  await ack();
+  try {
+    // 검색어
+    const searchText = command.text;
+    const bookBox = await CreateBookListModalBySearchText(searchText);
+    if (!bookBox) {
+      await client.chat.postEphemeral({
+        channel: process.env.SLACK_CHANNEL_ID,
+        user: command.user_id,
+        text: `⚠️ 해당 검색어(${command.text})로 찾을 수 있는 도서가 없습니다. 다시 시도해주세요!`,
+      });
+    } else {
+      // 검색어 별 도서 리스트 모달 OPEN
+      await client.views.open({
+        trigger_id: command.trigger_id,
+        view: bookBox,
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    await client.chat.postEphemeral({
+      channel: process.env.SLACK_CHANNEL_ID,
+      user: command.user_id,
+      text: `⚠️ 네트워크 환경으로 일시적인 오류가 발생했습니다. 다시 시도해주세요!`,
+    });
+  }
+});
+
 /**
  *! Action Router List
  */
@@ -104,7 +133,7 @@ slackApp.action(ACTION_ID_ENUM.MODAL, async ({ ack, body, client }) => {
   await ack();
   try {
     const genre = body.actions[0].value;
-    const bookBox = await CreateBookListModal(genre);
+    const bookBox = await CreateBookListModalByGenre(genre);
     // 장르 별 도서 리스트 모달 OPEN
     await client.views.open({
       trigger_id: body.trigger_id,
