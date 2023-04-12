@@ -2,7 +2,7 @@ const { App } = require('@slack/bolt');
 const { CreateCategoryListBox, CreateBookListModalBySearchText } = require('./service/command/service');
 const { ACTION_ID_ENUM, YN_ENUM, SUBMISSION_TYPE_ENUM, REQUEST_STATUS_ENUM } = require('./common/enum');
 const { CreateBookListModalByGenre } = require('./service/action/service');
-const { NotionRentBookInfo } = require('./database/rentList');
+const { NotionRentBookInfo, NotionReplyListGroupByTitle } = require('./database/rentList');
 const { NotionBookListGroupByUser, NotionUnpaidBookList } = require('./database/bookList');
 const { CreateReturnBookModalView, CreateRequestBookModalView } = require('./service/command/util/createModal');
 const { ReturnBookAlert } = require('./service/submission/service');
@@ -14,6 +14,7 @@ const {
 } = require('./database/requestList');
 const schedule = require('node-schedule');
 const { CreateAlertMessageBox } = require('./service/scheduler/util/createBox');
+const { CreateReplyModalView } = require('./service/action/util/createModal');
 const dotenv = require('dotenv').config();
 
 // 슬랙 볼트 앱 초기화
@@ -152,11 +153,30 @@ slackApp.action(ACTION_ID_ENUM.MODAL, async ({ ack, body, client }) => {
 slackApp.action(ACTION_ID_ENUM.REPLY, async ({ ack, body, client }) => {
   await ack();
   try {
-    await client.chat.postEphemeral({
-      channel: process.env.SLACK_CHANNEL_ID,
-      user: body.user.id,
-      text: `⚠️ 후기 기능은 개발중입니다!`,
+    const title = body.view.blocks[1].text.text.split('|')[1].split('>')[0].trim();
+    const titleId = body.view.blocks[2].accessory.value;
+    // 후기 리스트를 가져오는 요청
+    const replyList = await NotionReplyListGroupByTitle(titleId);
+    // 프로필 사진 추가
+    await Promise.all(
+      replyList.map(async (replyInfo) => {
+        replyInfo.slackImg = (await client.users.info({ user: replyInfo.slackId })).user.profile.image_original;
+      }),
+    );
+
+    console.log('✅ replyList: ', replyList);
+
+    // 도서 후기 모달 OPEN
+    await client.views.update({
+      view_id: body.view.id,
+      hash: body.view.hash,
+      view: CreateReplyModalView(title, replyList),
     });
+    // await client.chat.postEphemeral({
+    //   channel: process.env.SLACK_CHANNEL_ID,
+    //   user: body.user.id,
+    //   text: `⚠️ 후기 기능은 개발중입니다!`,
+    // });
   } catch (error) {
     console.error(error);
     await client.chat.postEphemeral({

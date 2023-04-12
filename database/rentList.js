@@ -2,6 +2,7 @@ const dotenv = require('dotenv').config();
 const { Client } = require('@notionhq/client');
 const { NotionBookListGroupByUser, NotionUpdateRentBookInfo } = require('./bookList');
 const { YN_ENUM } = require('../common/enum');
+const { VerificationNotionReplyList } = require('./util/verification');
 
 // 노션 클라이언트
 const notionClient = new Client({
@@ -155,4 +156,65 @@ exports.NotionRentBookInfo = async (pageId, userName, slackId) => {
   }
   // 대상 도서 정보(bookInfo)와 기존 도서 대여 목록(rentList) 그리고 대여 성공 유무(rentSuccessYN) 리턴
   return { rentBookInfo, rentList, rentSuccessYN };
+};
+
+// NOTION DB 저장소에 존재하는 장르 별 도서 목록을 가져오는 함수
+exports.NotionReplyListGroupByTitle = async (titleId) => {
+  // 후기 리스트를 담을 변수
+  let results = [];
+  // 정렬 옵션
+  const orderBy = [
+    {
+      property: '생성일시',
+      direction: 'descending',
+    },
+  ];
+  // 필터 옵션
+  const filter = {
+    property: '도서명',
+    relation: {
+      contains: titleId,
+    },
+  };
+  // 노션에서 후기 리스트를 가져온다.
+  const replyList = await notionClient.databases.query({
+    database_id: rentListNotionId,
+    sorts: orderBy, // 정렬
+    filter, // ID
+  });
+  // 후기 리스트
+  results = [...replyList.results];
+  // 100개 이상인 경우 리스트 연장
+  while (replyList.has_more) {
+    const nextReplyList = await notionClient.databases.query({
+      database_id: rentListNotionId,
+      sorts: orderBy, // 정렬
+      filter,
+      start_cursor: replyList.next_cursor,
+    });
+    results = [...results, ...nextReplyList.results];
+  }
+
+  // await Promise.all(
+  //   results.map(async (result) => {
+  //     const properties = {};
+
+  //     for (const propertyName of Object.keys(result.properties)) {
+  //       const propertyData = await notionClient.pages.properties.retrieve({
+  //         page_id: result.id,
+  //         property_id: result.properties[propertyName].id,
+  //       });
+
+  //       console.log('✅ propertyData: ', propertyData);
+
+  //       properties[propertyName] = propertyData;
+  //     }
+  //     return properties;
+  //   }),
+  // );
+
+  // 데이터 전처리
+  const verificationReplyList = VerificationNotionReplyList(results);
+
+  return verificationReplyList;
 };

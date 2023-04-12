@@ -13,6 +13,7 @@ exports.VerificationNotionCategoryList = (results) => {
 // 노션에서 불러온 도서 리스트 데이터 전처리 함수
 exports.VerificationNotionBookList = (results) => {
   const result = results.map((result) => {
+    console.log('✅ result: ', result.properties);
     // 변수 예외처리
     const genre = result.properties['장르'] ? result.properties['장르']['select']['name'] : '';
     const title = result.properties['도서명'] ? result.properties['도서명']['title'][0]['plain_text'] : '';
@@ -103,6 +104,46 @@ exports.VerificationNotionRequestList = (results) => {
       progressAlert,
       finalAlert,
       id,
+    };
+  });
+
+  return result;
+};
+
+// 노션에서 불러온 후기 리스트 데이터 전처리 함수
+exports.VerificationNotionReplyList = (results) => {
+  const switchStar = (score) => {
+    switch (score) {
+      case 1:
+        return '⭐️';
+      case 2:
+        return '⭐️⭐️';
+      case 3:
+        return '⭐️⭐️⭐️';
+      case 4:
+        return '⭐️⭐️⭐️⭐️';
+      case 5:
+        return '⭐️⭐️⭐️⭐️⭐️';
+    }
+  };
+  const result = results.map((result) => {
+    // 변수 예외처리
+    const reply = result.properties['한줄평']['rich_text'].length
+      ? result.properties['한줄평']['rich_text'][0]['plain_text']
+      : null;
+    const score = switchStar(result.properties['별점'].number);
+    const requester = result.properties['대여자'].title[0].text.content;
+    const slackId = result.properties['슬랙ID']['rich_text'].length
+      ? result.properties['슬랙ID']['rich_text'][0]['plain_text']
+      : null;
+    const createdAt = result.properties['생성일시'].created_time.substring(0, 10);
+
+    return {
+      reply,
+      score,
+      requester,
+      slackId,
+      createdAt,
     };
   });
 

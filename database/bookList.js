@@ -73,6 +73,25 @@ exports.NotionBookListGroupByGenre = async (genre) => {
     });
     results = [...results, ...nextBookList.results];
   }
+
+  // await Promise.all(
+  //   results.map(async (result) => {
+  //     const properties = {};
+
+  //     for (const propertyName of Object.keys(result.properties)) {
+  //       const propertyData = await notionClient.pages.properties.retrieve({
+  //         page_id: result.id,
+  //         property_id: result.properties[propertyName].id,
+  //       });
+
+  //       console.log('✅ propertyData: ', propertyData);
+
+  //       properties[propertyName] = propertyData;
+  //     }
+  //     return properties;
+  //   }),
+  // );
+
   // 데이터 전처리
   const verificationBookList = VerificationNotionBookList(results);
 
