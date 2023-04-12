@@ -12,7 +12,9 @@ exports.CreateReplyModalView = (title, replyList) => {
       elements: [
         {
           type: 'image',
-          image_url: replyInfo.slackImg,
+          image_url: replyInfo.slackImg
+            ? replyInfo.slackImg
+            : 'https://user-images.githubusercontent.com/83164003/231494265-bf10c3fe-c49e-46e2-b0c6-a00cf83a0f9f.png',
           alt_text: 'profile',
         },
         {

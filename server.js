@@ -163,20 +163,12 @@ slackApp.action(ACTION_ID_ENUM.REPLY, async ({ ack, body, client }) => {
         replyInfo.slackImg = (await client.users.info({ user: replyInfo.slackId })).user.profile.image_original;
       }),
     );
-
-    console.log('✅ replyList: ', replyList);
-
     // 도서 후기 모달 OPEN
     await client.views.update({
       view_id: body.view.id,
       hash: body.view.hash,
       view: CreateReplyModalView(title, replyList),
     });
-    // await client.chat.postEphemeral({
-    //   channel: process.env.SLACK_CHANNEL_ID,
-    //   user: body.user.id,
-    //   text: `⚠️ 후기 기능은 개발중입니다!`,
-    // });
   } catch (error) {
     console.error(error);
     await client.chat.postEphemeral({
