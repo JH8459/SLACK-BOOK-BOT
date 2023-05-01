@@ -1,23 +1,8 @@
-const { ACTION_ID_ENUM } = require('../../../common/enum');
+const { ACTION_ID_ENUM, ISSUE_IMAGE_ENUM } = require('../../../common/enum');
 
 // 카테고리 장르별 설명 텍스트 switch-case 함수
 exports.CategoryDescription = (category) => {
-  switch (category) {
-    case '경제/경영':
-      return '경제/경영 관련 도서 목록을 불러옵니다.';
-    case '정치/사회':
-      return '정치/사회 관련 도서 목록을 불러옵니다.';
-    case '기술/공학':
-      return '기술/공학 관련 도서 목록을 불러옵니다.';
-    case '자기계발':
-      return '자기계발 관련 도서 목록을 불러옵니다.';
-    case '컴퓨터/IT':
-      return '컴퓨터/IT 관련 도서 목록을 불러옵니다.';
-    case '인문':
-      return '인문 관련 도서 목록을 불러옵니다.';
-    default:
-      return '';
-  }
+  return `${category} 관련 도서 목록을 불러옵니다.`;
 };
 
 // 노션에서 불러온 카테고리 데이터 블럭 변경 함수
@@ -67,8 +52,7 @@ exports.CreateCompleteCategoryListBox = (categoryListBox, length) => {
       elements: [
         {
           type: 'image',
-          image_url:
-            'https://user-images.githubusercontent.com/83164003/225353904-5d0ed7dc-d7e1-456a-9e67-4caf14114fae.png',
+          image_url: ISSUE_IMAGE_ENUM.BOOK,
           alt_text: 'book',
         },
         {

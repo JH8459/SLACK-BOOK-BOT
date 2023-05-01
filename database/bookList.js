@@ -1,6 +1,7 @@
 const dotenv = require('dotenv').config();
 const { Client } = require('@notionhq/client');
 const { VerificationNotionCategoryList, VerificationNotionBookList } = require('./util/verification');
+const { divisionList } = require('./util/util.js');
 
 // 노션 클라이언트
 const notionClient = new Client({
@@ -73,29 +74,18 @@ exports.NotionBookListGroupByGenre = async (genre) => {
     });
     results = [...results, ...nextBookList.results];
   }
-
-  // await Promise.all(
-  //   results.map(async (result) => {
-  //     const properties = {};
-
-  //     for (const propertyName of Object.keys(result.properties)) {
-  //       const propertyData = await notionClient.pages.properties.retrieve({
-  //         page_id: result.id,
-  //         property_id: result.properties[propertyName].id,
-  //       });
-
-  //       console.log('✅ propertyData: ', propertyData);
-
-  //       properties[propertyName] = propertyData;
-  //     }
-  //     return properties;
-  //   }),
-  // );
-
   // 데이터 전처리
   const verificationBookList = VerificationNotionBookList(results);
+  const total = verificationBookList.length;
+  // 데이터 자르기 (10개씩)
+  const bookListArr = divisionList(verificationBookList, 10);
+  // 총갯수, bookList
+  const result = {
+    total,
+    bookList: bookListArr,
+  };
 
-  return verificationBookList;
+  return result;
 };
 
 // NOTION DB 저장소에 존재하는 사용자 별 도서 목록을 가져오는 함수

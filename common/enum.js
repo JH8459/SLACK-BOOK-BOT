@@ -3,6 +3,12 @@ const YN_ENUM = {
   NO: 'N',
 };
 
+const ISSUE_IMAGE_ENUM = {
+  BOOK: 'https://user-images.githubusercontent.com/83164003/225353904-5d0ed7dc-d7e1-456a-9e67-4caf14114fae.png',
+  SEARCH: 'https://user-images.githubusercontent.com/83164003/226113602-45fd6b61-b175-449b-8d33-7a8ee125d9b6.png',
+  ACG: 'https://user-images.githubusercontent.com/83164003/231494265-bf10c3fe-c49e-46e2-b0c6-a00cf83a0f9f.png',
+};
+
 const REQUEST_TYPE_ENUM = {
   WORK: '업무',
   DEVELOPMENT: '자기개발',
@@ -17,6 +23,7 @@ const REQUEST_STATUS_ENUM = {
 };
 
 const ACTION_ID_ENUM = {
+  JOIN: 'team_join',
   RETURN_DATE: 'return-date',
   RENT: 'rent',
   MODAL: 'modal',
@@ -26,6 +33,8 @@ const ACTION_ID_ENUM = {
   REQUEST_INPUT_AUTHOR: 'input-author',
   REQUEST_INPUT_PRICE: 'input-price',
   REQUEST_INPUT_URL: 'input-url',
+  NEXT: 'next',
+  PREV: 'prev',
 };
 
 const SUBMISSION_TYPE_ENUM = {
@@ -35,6 +44,7 @@ const SUBMISSION_TYPE_ENUM = {
 
 module.exports = {
   YN_ENUM,
+  ISSUE_IMAGE_ENUM,
   REQUEST_TYPE_ENUM,
   REQUEST_STATUS_ENUM,
   ACTION_ID_ENUM,

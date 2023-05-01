@@ -13,7 +13,6 @@ exports.VerificationNotionCategoryList = (results) => {
 // 노션에서 불러온 도서 리스트 데이터 전처리 함수
 exports.VerificationNotionBookList = (results) => {
   const result = results.map((result) => {
-    console.log('✅ result: ', result.properties);
     // 변수 예외처리
     const genre = result.properties['장르'] ? result.properties['장르']['select']['name'] : '';
     const title = result.properties['도서명'] ? result.properties['도서명']['title'][0]['plain_text'] : '';

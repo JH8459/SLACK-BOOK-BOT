@@ -34,8 +34,9 @@ slackApp.command('/카테고리', async ({ ack, command, client }) => {
     // 카테고리 리스트를 불러온다
     const categoryBox = await CreateCategoryListBox();
     // 슬랙 메시지 발송
-    await client.chat.postMessage({
+    await client.chat.postEphemeral({
       channel: command.channel_id,
+      user: command.user_id,
       blocks: categoryBox,
     });
   } catch (error) {
@@ -134,10 +135,63 @@ slackApp.action(ACTION_ID_ENUM.MODAL, async ({ ack, body, client }) => {
   await ack();
   try {
     const genre = body.actions[0].value;
-    const bookBox = await CreateBookListModalByGenre(genre);
-    // 장르 별 도서 리스트 모달 OPEN
-    await client.views.open({
-      trigger_id: body.trigger_id,
+    const bookBox = await CreateBookListModalByGenre(genre, 1);
+    if (!bookBox) {
+      // ERROR
+      await client.chat.postEphemeral({
+        channel: process.env.SLACK_CHANNEL_ID,
+        user: body.user.id,
+        text: `⚠️ 잘못된 도서 리스트 호출 요청입니다!`,
+      });
+    } else {
+      // 장르 별 도서 리스트 모달 OPEN
+      await client.views.open({
+        trigger_id: body.trigger_id,
+        view: bookBox,
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    await client.chat.postEphemeral({
+      channel: process.env.SLACK_CHANNEL_ID,
+      user: body.user.id,
+      text: `⚠️ 네트워크 환경으로 일시적인 오류가 발생했습니다. 다시 시도해주세요!`,
+    });
+  }
+});
+
+slackApp.action(ACTION_ID_ENUM.NEXT, async ({ ack, body, client }) => {
+  await ack();
+  try {
+    const genre = body.view.title.text.split('"')[1];
+    const page = Number(body.actions[0].value) + 1;
+
+    const bookBox = await CreateBookListModalByGenre(genre, page);
+
+    await client.views.update({
+      view_id: body.view.id,
+      view: bookBox,
+    });
+  } catch (error) {
+    console.error(error);
+    await client.chat.postEphemeral({
+      channel: process.env.SLACK_CHANNEL_ID,
+      user: body.user.id,
+      text: `⚠️ 네트워크 환경으로 일시적인 오류가 발생했습니다. 다시 시도해주세요!`,
+    });
+  }
+});
+
+slackApp.action(ACTION_ID_ENUM.PREV, async ({ ack, body, client }) => {
+  await ack();
+  try {
+    const genre = body.view.title.text.split('"')[1];
+    const page = Number(body.actions[0].value) - 1;
+
+    const bookBox = await CreateBookListModalByGenre(genre, page);
+
+    await client.views.update({
+      view_id: body.view.id,
       view: bookBox,
     });
   } catch (error) {

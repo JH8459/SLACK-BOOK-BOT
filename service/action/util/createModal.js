@@ -1,3 +1,5 @@
+const { ISSUE_IMAGE_ENUM } = require('../../../common/enum');
+
 // 후기 리스트 모달 뷰 생성 함수
 exports.CreateReplyModalView = (title, replyList) => {
   const replyListBox = [];
@@ -12,9 +14,7 @@ exports.CreateReplyModalView = (title, replyList) => {
       elements: [
         {
           type: 'image',
-          image_url: replyInfo.slackImg
-            ? replyInfo.slackImg
-            : 'https://user-images.githubusercontent.com/83164003/231494265-bf10c3fe-c49e-46e2-b0c6-a00cf83a0f9f.png',
+          image_url: replyInfo.slackImg ? replyInfo.slackImg : ISSUE_IMAGE_ENUM.ACG,
           alt_text: 'profile',
         },
         {
@@ -36,8 +36,6 @@ exports.CreateReplyModalView = (title, replyList) => {
     replyListBox.push(headerBox);
     replyListBox.push(bodyBox);
   });
-
-  console.log('✅', replyListBox);
 
   const modalView = {
     type: 'modal',

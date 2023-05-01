@@ -1,4 +1,4 @@
-const { ACTION_ID_ENUM } = require('../../common/enum');
+const { ACTION_ID_ENUM, ISSUE_IMAGE_ENUM } = require('../../common/enum');
 
 // 노션에서 불러온 도서 데이터 블럭 변경 함수
 exports.CreateBookListBox = (book) => {
@@ -48,8 +48,7 @@ exports.CreateBookListBox = (book) => {
           elements: [
             {
               type: 'image',
-              image_url:
-                'https://user-images.githubusercontent.com/83164003/225353904-5d0ed7dc-d7e1-456a-9e67-4caf14114fae.png',
+              image_url: ISSUE_IMAGE_ENUM.BOOK,
               alt_text: 'Requester Thumbnail',
             },
             {
@@ -86,21 +85,102 @@ exports.CreateBookListBox = (book) => {
 };
 
 // 도서 헤더 블럭 + 하단 부분 블럭 추가 함수
-exports.CreateCompleteBookListModal = (text, bookListBox, length) => {
+exports.CreateCompleteBookListModal = (text, bookListBox, total, page, totalPage) => {
+  if (totalPage > 2) {
+    // 구분선 추가
+    bookListBox.unshift({
+      type: 'divider',
+    });
+    bookListBox.unshift({
+      type: 'actions',
+      elements: [
+        10 > (page - 1) * 10
+          ? {
+              type: 'button',
+              text: {
+                type: 'plain_text',
+                text: `⚠️ 이전 페이지가 없습니다.`,
+                emoji: true,
+              },
+              style: 'danger',
+              value: `${page}`,
+              confirm: {
+                title: {
+                  type: 'plain_text',
+                  text: '잘못된 요청입니다.',
+                },
+                text: {
+                  type: 'mrkdwn',
+                  text: '⚠️ 첫페이지 입니다.',
+                },
+                confirm: {
+                  type: 'plain_text',
+                  text: '확인',
+                },
+                deny: {
+                  type: 'plain_text',
+                  text: '닫기',
+                },
+              },
+            }
+          : {
+              type: 'button',
+              text: {
+                type: 'plain_text',
+                text: `이전 (${(page - 1) * 10}/${total})`,
+                emoji: true,
+              },
+              value: `${page}`,
+              action_id: ACTION_ID_ENUM.PREV,
+            },
+        totalPage <= page
+          ? {
+              type: 'button',
+              text: {
+                type: 'plain_text',
+                text: `⚠️ 다음 페이지가 없습니다.`,
+                emoji: true,
+              },
+              style: 'danger',
+              value: `${page}`,
+              confirm: {
+                title: {
+                  type: 'plain_text',
+                  text: '잘못된 요청입니다.',
+                },
+                text: {
+                  type: 'mrkdwn',
+                  text: '⚠️ 마지막 페이지입니다.',
+                },
+                confirm: {
+                  type: 'plain_text',
+                  text: '확인',
+                },
+                deny: {
+                  type: 'plain_text',
+                  text: '닫기',
+                },
+              },
+            }
+          : {
+              type: 'button',
+              text: {
+                type: 'plain_text',
+                text: `다음 (${total > (page + 1) * 10 ? (page + 1) * 10 : total}/${total})`,
+                emoji: true,
+              },
+              value: `${page}`,
+              action_id: ACTION_ID_ENUM.NEXT,
+            },
+      ],
+    });
+  }
   bookListBox.unshift({
-    type: 'context',
-    elements: [
-      {
-        type: 'image',
-        image_url:
-          'https://user-images.githubusercontent.com/83164003/225353904-5d0ed7dc-d7e1-456a-9e67-4caf14114fae.png',
-        alt_text: 'book',
-      },
-      {
-        type: 'mrkdwn',
-        text: `* 총 ${length}건의 도서가 검색되었습니다.* `,
-      },
-    ],
+    type: 'section',
+    text: {
+      type: 'mrkdwn',
+      text: `📚 * 총 ${total}건의 도서가 검색되었습니다.*`,
+    },
   });
   bookListBox.pop();
   const modalView = {
