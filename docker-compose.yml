@@ -1,11 +1,11 @@
 version: '1.0'
 # DevelopMent
 services:
-  acg-2023-book-slack:
+  acg2023-book-management:
     build:
       context: .
       dockerfile: Dockerfile
-    image: 127.0.0.1:5000/acg2023bookslack
+    image: 127.0.0.1:5000/acg2023-book-management
     ports:
       - 6105:6105
     volumes:
