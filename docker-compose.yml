@@ -1,0 +1,17 @@
+version: '1.0'
+# DevelopMent
+services:
+  acg-2023-book-slack:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: 127.0.0.1:5000/acg2023bookslack
+    ports:
+      - 6105:6105
+    volumes:
+      - ./src:/myfolder/src
+    env_file:
+      - ./.env
+    environment:
+      - TZ=Asia/Seoul
+    restart: always

@@ -86,7 +86,7 @@ exports.CreateBookListBox = (book) => {
 
 // 도서 헤더 블럭 + 하단 부분 블럭 추가 함수
 exports.CreateCompleteBookListModal = (text, bookListBox, total, page, totalPage) => {
-  if (totalPage > 2) {
+  if (totalPage >= 2) {
     // 구분선 추가
     bookListBox.unshift({
       type: 'divider',
